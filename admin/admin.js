@@ -210,6 +210,21 @@ async function loadCourses() {
     }
 
     container.innerHTML = '';
+    
+    // Update genCourse dropdown in Student Generator
+    const genSelect = document.getElementById('genCourse');
+    if (genSelect) {
+      const currentVal = genSelect.value;
+      genSelect.innerHTML = '';
+      data.courses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = c.title;
+        genSelect.appendChild(opt);
+      });
+      if (currentVal) genSelect.value = currentVal;
+    }
+
     data.courses.forEach(course => {
       const courseCard = document.createElement('div');
       courseCard.className = 'course-item';
