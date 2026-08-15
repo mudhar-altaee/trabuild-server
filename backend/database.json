@@ -1,0 +1,61 @@
+{
+  "courses": [
+    {
+      "id": 1,
+      "title": "كورس هندسة وتصميم TRABUILD المتقدم",
+      "description": "دورة احترافية شاملة لكافة برامج التصميم الهندسي وتطبيقات Revit والتصميم الإنشائي",
+      "instructor": "مهندس ترابلد المعتمد",
+      "lessons": [
+        {
+          "id": 101,
+          "title": "المحاضرة 01: مقدمة في نظام TRABUILD وبيئة العمل",
+          "duration": "45:20 دقيقة",
+          "bunny_id": "sample_video_101",
+          "stream_url": "http://localhost:5000/assets/sample.mp4"
+        },
+        {
+          "id": 102,
+          "title": "المحاضرة 02: أدوات النمذجة المتقدمة وإدارة العناصر",
+          "duration": "58:45 دقيقة",
+          "bunny_id": "sample_video_102",
+          "stream_url": "http://localhost:5000/assets/sample.mp4"
+        },
+        {
+          "id": 103,
+          "title": "المحاضرة 03: إخراج المخططات النهائية وتصدير المشروع",
+          "duration": "50:15 دقيقة",
+          "bunny_id": "sample_video_103",
+          "stream_url": "http://localhost:5000/assets/sample.mp4"
+        }
+      ]
+    }
+  ],
+  "licenses": [
+    {
+      "id": "1",
+      "key": "TRABUILD-2026-IRAQ-7777",
+      "student_name": "احمد علي حسين",
+      "phone": "07701234567",
+      "hwid": "HWID-WIN-F5BE79222B48",
+      "status": "active",
+      "course_ids": [
+        1
+      ],
+      "created_at": "2026-08-15 10:00:00",
+      "last_active": "2026-08-15 13:59:41"
+    },
+    {
+      "id": "2",
+      "key": "TRABUILD-2026-IRAQ-8888",
+      "student_name": "حسين قاسم عبد",
+      "phone": "07809876543",
+      "hwid": "HWID-WIN-F5BE79222B48",
+      "status": "active",
+      "course_ids": [
+        1
+      ],
+      "created_at": "2026-08-15 11:30:00",
+      "last_active": "2026-08-15 14:25:49"
+    }
+  ]
+}

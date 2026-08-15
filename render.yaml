@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: trabuild-cloud-server
+    env: python
+    buildCommand: pip install -r requirements.txt gunicorn
+    startCommand: gunicorn backend.server:app
+    plan: free
+    autoDeploy: true

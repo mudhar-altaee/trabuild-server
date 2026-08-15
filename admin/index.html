@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة تحكم TRABUILD Cloud - إدارة التراخيص والكورسات</title>
+  <link rel="stylesheet" href="/admin/styles.css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="admin-header">
+    <div class="header-brand">
+      <img src="/assets/logo.png" alt="Logo" class="brand-logo" style="max-height: 46px; max-width: 220px; width: auto; object-fit: contain;" onerror="this.src='/assets/trabuild_icone.png'">
+    </div>
+    <div class="header-status">
+      <div class="live-pulse"></div>
+      <span class="status-text">السيرفر متصل: <strong>Active Online</strong></span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+
+    <!-- KPI Stats Cards -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;">👥</div>
+        <div class="stat-content">
+          <span class="stat-label">إجمالي الطلاب</span>
+          <h3 id="statTotalStudents" class="stat-value">0</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ecfdf5; color:#059669;">🟢</div>
+        <div class="stat-content">
+          <span class="stat-label">الاشتراكات النشطة</span>
+          <h3 id="statActiveStudents" class="stat-value">0</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fef2f2; color:#dc2626;">🚫</div>
+        <div class="stat-content">
+          <span class="stat-label">الطلاب المحظورين</span>
+          <h3 id="statBannedStudents" class="stat-value">0</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f5f3ff; color:#7c3aed;">📚</div>
+        <div class="stat-content">
+          <span class="stat-label">إجمالي المحاضرات</span>
+          <h3 id="statTotalLessons" class="stat-value">0</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tabStudents')">🔑 إدارة الطلاب والتراخيص</button>
+      <button class="tab-btn" onclick="switchTab('tabCourses')">🎥 إدارة الكورسات و Bunny.net</button>
+      <button class="tab-btn" onclick="switchTab('tabCloud')">☁️ إعدادات الربط السحابي (AWS / Bunny)</button>
+    </div>
+
+    <!-- TAB 1: Student & License Management -->
+    <section id="tabStudents" class="tab-pane active">
+      
+      <!-- Key Generator Box -->
+      <div class="card generator-card">
+        <div class="card-header">
+          <h2>⚡ إنشاء ترخيص جديد لطالب</h2>
+          <p>أدخل بيانات الطالب لتوليد مفتاح تفعيل محمي مربوط تلقائياً بجهـازه عند أول استخدام</p>
+        </div>
+        <div class="generator-form">
+          <div class="form-group">
+            <label>اسم الطالب الثلاثي:</label>
+            <input type="text" id="genName" class="form-control" placeholder="مثال: علي محمد حسن">
+          </div>
+          <div class="form-group">
+            <label>رقم هاتف الطالب (للعلامة المائية):</label>
+            <input type="text" id="genPhone" class="form-control" placeholder="مثال: 07701234567">
+          </div>
+          <div class="form-group">
+            <label>الكورس المسموح به:</label>
+            <select id="genCourse" class="form-control">
+              <option value="1">كورس هندسة وتصميم TRABUILD المتقدم</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="createLicense()">+ توليد كود الترخيص</button>
+        </div>
+
+        <!-- Generated Key Alert -->
+        <div id="newKeyAlert" class="new-key-box hidden">
+          <span>تم إنشاء الترخيص بنجاح:</span>
+          <strong id="newKeyText" class="key-highlight">TRABUILD-2026-XXXX-XXXX</strong>
+          <button class="btn btn-sm btn-copy" onclick="copyKey()">نسخ الكود 📋</button>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="card table-card">
+        <div class="card-header flex-between">
+          <div>
+            <h2>📋 سجل التراخيص والطلاب</h2>
+            <p>التحكم اللحظي بحظر أي حساب أو تصفير بصمة الجهاز (HWID Reset)</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadLicenses()">🔄 تحديث البيانات</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>اسم الطالب</th>
+                <th>رقم الهاتف</th>
+                <th>مفتاح الترخيص (Key)</th>
+                <th>بصمة الجهاز (HWID)</th>
+                <th>الحالة</th>
+                <th>آخر نشاط</th>
+                <th>الإجراءات السريعة</th>
+              </tr>
+            </thead>
+            <tbody id="licensesTableBody">
+              <tr>
+                <td colspan="8" class="text-center">جاري تحميل البيانات من السيرفر...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 2: Courses & Bunny Stream Manager -->
+    <section id="tabCourses" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2>🎥 إضافة محاضرة جديدة (ربط Bunny.net)</h2>
+          <p>أضف رابط البث المباشر المشفر أو معرّف المحاضرة في Bunny Stream</p>
+        </div>
+        <div class="generator-form">
+          <div class="form-group">
+            <label>عنوان المحاضرة:</label>
+            <input type="text" id="lessonTitle" class="form-control" placeholder="مثال: المحاضرة 04: إعدادات الإضاءة والإخراج">
+          </div>
+          <div class="form-group">
+            <label>المدة الزمنية:</label>
+            <input type="text" id="lessonDuration" class="form-control" placeholder="مثال: 52:10 دقيقة">
+          </div>
+          <div class="form-group">
+            <label>معرّف Bunny Stream ID (اختياري):</label>
+            <input type="text" id="bunnyId" class="form-control" placeholder="مثال: bunny_vid_9981">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>رابط الفيديو / البث المشفر (Stream URL):</label>
+            <input type="text" id="lessonUrl" class="form-control" placeholder="https://vz-xxxx.b-cdn.net/.../playlist.m3u8 أو رابط MP4">
+          </div>
+          <button class="btn btn-primary" onclick="addLesson()">+ إضافة المحاضرة إلى الكورس</button>
+        </div>
+      </div>
+
+      <!-- Current Courses & Lessons List -->
+      <div class="card mt-20">
+        <div class="card-header">
+          <h2>📚 المحاضرات المتاحة حالياً في المنظومة</h2>
+        </div>
+        <div id="coursesContainer" class="courses-grid">
+          <!-- Dynamically loaded -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Cloud & Security Settings -->
+    <section id="tabCloud" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2>☁️ إعدادات الربط السحابي والـ Deployment</h2>
+          <p>بيانات الاتصال بين السيرفر السحابي وتطبيق الطلاب</p>
+        </div>
+        <div class="cloud-info-box">
+          <div class="info-row">
+            <span class="info-label">عنوان السيرفر الحالي (Backend Endpoint):</span>
+            <code id="apiEndpointText">http://localhost:5000</code>
+          </div>
+          <div class="info-row">
+            <span class="info-label">جاهزية النشر على AWS / Google Cloud:</span>
+            <span class="badge badge-success">جاهز (Dockerized & Stateless)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">مستوى الحماية المطبق:</span>
+            <span class="badge badge-shield">Hardware-Binding + Anti-Capture + Dynamic Watermark</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
