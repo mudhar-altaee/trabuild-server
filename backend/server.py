@@ -352,6 +352,36 @@ def delete_lesson(course_id, lesson_id):
     save_db(db)
     return jsonify({"success": True, "message": "تم حذف المحاضرة بنجاح."})
 
+@app.route("/api/admin/courses/<int:course_id>/lessons/<int:lesson_id>/update", methods=["POST", "PUT"])
+def update_lesson(course_id, lesson_id):
+    data = request.json or {}
+    title = data.get("title", "").strip()
+    duration = data.get("duration", "").strip()
+    stream_url = data.get("stream_url", "").strip()
+    bunny_id = data.get("bunny_id", "").strip()
+
+    if not title or not stream_url:
+        return jsonify({"success": False, "message": "عنوان المحاضرة ورابط الفيديو مطلوبان."}), 400
+
+    db = load_db()
+    course = next((c for c in db["courses"] if c["id"] == course_id), None)
+    if not course:
+        return jsonify({"success": False, "message": "الكورس غير موجود."}), 404
+
+    lesson = next((l for l in course.get("lessons", []) if l["id"] == lesson_id), None)
+    if not lesson:
+        return jsonify({"success": False, "message": "المحاضرة غير موجودة."}), 404
+
+    lesson["title"] = title
+    if duration:
+        lesson["duration"] = duration
+    lesson["stream_url"] = stream_url
+    if bunny_id:
+        lesson["bunny_id"] = bunny_id
+
+    save_db(db)
+    return jsonify({"success": True, "message": "تم تعديل بيانات المحاضرة بنجاح.", "lesson": lesson})
+
 @app.route("/api/admin/courses", methods=["POST"])
 def add_lesson():
     data = request.json or {}

@@ -199,6 +199,39 @@
     </section>
 
   </main>
+ 
+  <!-- Edit Lesson Modal -->
+  <div id="editLessonModal" class="modal-overlay hidden">
+    <div class="modal-card" style="text-align: right; max-width: 500px; width: 90%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2 style="font-size:18px; color:var(--brand-dark);">✏️ تعديل بيانات المحاضرة</h2>
+        <button class="btn btn-sm btn-secondary" onclick="closeEditLessonModal()">✕</button>
+      </div>
+      <input type="hidden" id="editCourseId">
+      <input type="hidden" id="editLessonId">
+      
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>عنوان المحاضرة:</label>
+        <input type="text" id="editLessonTitle" class="form-control">
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>المدة الزمنية:</label>
+        <input type="text" id="editLessonDuration" class="form-control">
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>معرّف Bunny Stream ID:</label>
+        <input type="text" id="editBunnyId" class="form-control">
+      </div>
+      <div class="form-group" style="margin-bottom:18px;">
+        <label>رابط الفيديو / البث المشفر (Stream URL):</label>
+        <input type="text" id="editLessonUrl" class="form-control">
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeEditLessonModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveLessonUpdate()">💾 حفظ التعديلات</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/admin/admin.js"></script>
 </body>

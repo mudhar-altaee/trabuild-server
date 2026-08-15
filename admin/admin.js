@@ -219,16 +219,21 @@ async function loadCourses() {
         lessonsHtml = '<div style="color:#64748b; font-size:13px; padding:10px;">لا توجد محاضرات في هذا الكورس بعد.</div>';
       } else {
         course.lessons.forEach((lesson, i) => {
+          // Escape quotes for json string in data attributes
+          const lessonJson = encodeURIComponent(JSON.stringify(lesson));
           lessonsHtml += `
             <div class="lesson-row">
               <div>
                 <strong>${i + 1}. ${lesson.title}</strong>
                 <div style="color:#64748b; font-size:12px; margin-top:2px;">
-                  المدة: ${lesson.duration} | Bunny ID: <code>${lesson.bunny_id}</code>
+                  المدة: ${lesson.duration} | Bunny ID: <code>${lesson.bunny_id || 'N/A'}</code>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="badge badge-active">جاهز للبث</span>
+                <button class="btn btn-sm btn-secondary" onclick="openEditLessonModal(${course.id}, decodeURIComponent('${lessonJson}'))" title="تعديل بيانات المحاضرة">
+                  تعديل ✏️
+                </button>
                 <button class="btn btn-sm" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;" onclick="deleteLesson(${course.id}, ${lesson.id}, '${lesson.title}')" title="مسح هذه المحاضرة">
                   مسح 🗑️
                 </button>
@@ -251,6 +256,59 @@ async function loadCourses() {
     });
   } catch (err) {
     console.error("Error loading courses:", err);
+  }
+}
+
+function openEditLessonModal(courseId, lessonStr) {
+  const lesson = typeof lessonStr === 'string' ? JSON.parse(lessonStr) : lessonStr;
+  document.getElementById('editCourseId').value = courseId;
+  document.getElementById('editLessonId').value = lesson.id;
+  document.getElementById('editLessonTitle').value = lesson.title || '';
+  document.getElementById('editLessonDuration').value = lesson.duration || '';
+  document.getElementById('editBunnyId').value = lesson.bunny_id || '';
+  document.getElementById('editLessonUrl').value = lesson.stream_url || '';
+  
+  document.getElementById('editLessonModal').classList.remove('hidden');
+}
+
+function closeEditLessonModal() {
+  document.getElementById('editLessonModal').classList.add('hidden');
+}
+
+async function saveLessonUpdate() {
+  const courseId = document.getElementById('editCourseId').value;
+  const lessonId = document.getElementById('editLessonId').value;
+  const title = document.getElementById('editLessonTitle').value.trim();
+  const duration = document.getElementById('editLessonDuration').value.trim();
+  const bunnyId = document.getElementById('editBunnyId').value.trim();
+  const streamUrl = document.getElementById('editLessonUrl').value.trim();
+
+  if (!title || !streamUrl) {
+    alert("يرجى كتابة عنوان المحاضرة ورابط الفيديو أولاً!");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        duration: duration || "45:00 دقيقة",
+        bunny_id: bunnyId,
+        stream_url: streamUrl
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message);
+      closeEditLessonModal();
+      loadCourses();
+    } else {
+      alert("خطأ: " + data.message);
+    }
+  } catch (err) {
+    alert("فشل تعديل المحاضرة: " + err);
   }
 }
 
@@ -340,3 +398,4 @@ async function addLesson() {
     alert("فشل الاتصال بالسيرفر: " + err);
   }
 }
+
