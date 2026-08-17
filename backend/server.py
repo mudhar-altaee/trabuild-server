@@ -196,6 +196,11 @@ def serve_assets(path):
     assets_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets"))
     return send_from_directory(assets_dir, path)
 
+def get_baghdad_time():
+    """Returns formatted time strictly in Baghdad / Iraq local time (UTC+3)."""
+    now_baghdad = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+    return now_baghdad.strftime("%Y-%m-%d %I:%M:%S %p")
+
 # ----------------------------------------------------
 # Student Player API Endpoints
 # ----------------------------------------------------
@@ -229,7 +234,7 @@ def activate_license():
         # First time activation on this hardware -> bind it!
         license_item["hwid"] = client_hwid
         license_item["status"] = "active"
-        license_item["last_active"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        license_item["last_active"] = get_baghdad_time()
         save_db(db)
     elif bound_hwid != client_hwid:
         return jsonify({
@@ -239,7 +244,7 @@ def activate_license():
         }), 403
 
     # Update last active
-    license_item["last_active"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    license_item["last_active"] = get_baghdad_time()
     save_db(db)
 
     # Return student profile and courses
@@ -277,7 +282,7 @@ def check_heartbeat():
         return jsonify({"valid": False, "reason": "hwid_mismatch", "message": "عدم تطابق في بصمة الجهاز المصرح به."}), 403
 
     # Update last active timestamp
-    license_item["last_active"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    license_item["last_active"] = get_baghdad_time()
     save_db(db)
 
     return jsonify({"valid": True, "status": license_item["status"]})
@@ -355,7 +360,7 @@ def create_license():
         "hwid": "",
         "status": "waiting",
         "course_ids": [course_id],
-        "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "created_at": get_baghdad_time(),
         "last_active": "لم يسجل دخول بعد"
     }
     db.setdefault("licenses", []).append(new_license)
