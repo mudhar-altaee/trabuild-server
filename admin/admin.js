@@ -106,6 +106,7 @@ async function createLicense() {
   const name = document.getElementById('genName').value.trim();
   const phone = document.getElementById('genPhone').value.trim();
   const courseId = document.getElementById('genCourse').value;
+  const customKey = document.getElementById('genCustomKey') ? document.getElementById('genCustomKey').value.trim() : '';
 
   if (!name) {
     alert("يرجى إدخال اسم الطالب أولاً!");
@@ -116,7 +117,7 @@ async function createLicense() {
     const res = await fetch(`${API_BASE}/api/admin/licenses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, course_id: courseId })
+      body: JSON.stringify({ name, phone, course_id: courseId, custom_key: customKey })
     });
     const data = await res.json();
     if (data.success) {
@@ -126,6 +127,7 @@ async function createLicense() {
       // Clear inputs
       document.getElementById('genName').value = '';
       document.getElementById('genPhone').value = '';
+      if (document.getElementById('genCustomKey')) document.getElementById('genCustomKey').value = '';
 
       loadLicenses();
       loadStats();

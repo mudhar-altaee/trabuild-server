@@ -84,12 +84,16 @@
             <input type="text" id="genPhone" class="form-control" placeholder="مثال: 07701234567">
           </div>
           <div class="form-group">
+            <label>كود الترخيص (اختياري - مخصص أو كود سابق):</label>
+            <input type="text" id="genCustomKey" class="form-control" placeholder="اتركه فارغاً للتوليد التلقائي، أو اكتب مثل: TRABUILD-2026-XXXX-XXXX">
+          </div>
+          <div class="form-group">
             <label>الكورس المسموح به:</label>
             <select id="genCourse" class="form-control">
               <option value="1">كورس هندسة وتصميم TRABUILD المتقدم</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="createLicense()">+ توليد كود الترخيص</button>
+          <button class="btn btn-primary" onclick="createLicense()">+ حفظ / توليد كود الترخيص</button>
         </div>
 
         <!-- Generated Key Alert -->

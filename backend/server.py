@@ -325,17 +325,30 @@ def create_license():
     name = data.get("name", "").strip()
     phone = data.get("phone", "").strip()
     course_id = int(data.get("course_id", 1))
+    custom_key = data.get("custom_key", "").strip()
 
     if not name:
         return jsonify({"success": False, "message": "اسم الطالب مطلوب."}), 400
 
-    phone_clean = phone[-4:] if len(phone) >= 4 else "8888"
-    rand_code = uuid.uuid4().hex[:4].upper()
-    generated_key = f"TRABUILD-2026-{phone_clean}-{rand_code}"
+    if custom_key:
+        generated_key = custom_key.upper()
+    else:
+        phone_clean = phone[-4:] if len(phone) >= 4 else "8888"
+        rand_code = uuid.uuid4().hex[:4].upper()
+        generated_key = f"TRABUILD-2026-{phone_clean}-{rand_code}"
 
     db = load_db()
+    # Check if key already exists, if so update it
+    existing = next((l for l in db.get("licenses", []) if l["key"].upper() == generated_key.upper()), None)
+    if existing:
+        existing["student_name"] = name
+        existing["phone"] = phone or existing.get("phone", "")
+        existing["course_ids"] = [course_id]
+        save_db(db)
+        return jsonify({"success": True, "message": "تم تحديث الترخيص وإعادة تفعيله بنجاح.", "license": existing})
+
     new_license = {
-        "id": str(len(db["licenses"]) + 1),
+        "id": str(len(db.get("licenses", [])) + 1),
         "key": generated_key,
         "student_name": name,
         "phone": phone or "07700000000",
@@ -345,7 +358,7 @@ def create_license():
         "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "last_active": "لم يسجل دخول بعد"
     }
-    db["licenses"].append(new_license)
+    db.setdefault("licenses", []).append(new_license)
     save_db(db)
 
     return jsonify({"success": True, "license": new_license})
