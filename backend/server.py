@@ -69,7 +69,73 @@ DEFAULT_DB = {
     ]
 }
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+def get_pg_conn():
+    if not DATABASE_URL:
+        return None
+    try:
+        import psycopg2
+        url = DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        conn = psycopg2.connect(url)
+        return conn
+    except Exception as e:
+        print(f"[DB] PostgreSQL connection warning: {e}")
+        return None
+
+def init_pg_tables():
+    conn = get_pg_conn()
+    if not conn:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS trabuild_store (
+                    id VARCHAR(50) PRIMARY KEY,
+                    data JSONB NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            cur.execute("SELECT data FROM trabuild_store WHERE id = 'main';")
+            row = cur.fetchone()
+            if not row:
+                cur.execute(
+                    "INSERT INTO trabuild_store (id, data) VALUES ('main', %s);",
+                    [json.dumps(DEFAULT_DB)]
+                )
+            conn.commit()
+            print("[DB] PostgreSQL initialized successfully!")
+    except Exception as e:
+        print(f"[DB] Error initializing PostgreSQL tables: {e}")
+    finally:
+        conn.close()
+
+if DATABASE_URL:
+    try:
+        init_pg_tables()
+    except Exception:
+        pass
+
 def load_db():
+    conn = get_pg_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT data FROM trabuild_store WHERE id = 'main';")
+                row = cur.fetchone()
+                if row and row[0]:
+                    data = row[0]
+                    if isinstance(data, str):
+                        data = json.loads(data)
+                    return data
+        except Exception as e:
+            print(f"[DB] Error loading from PostgreSQL: {e}")
+        finally:
+            conn.close()
+
+    # Fallback to local json file
     if not os.path.exists(DB_PATH):
         save_db(DEFAULT_DB)
         return DEFAULT_DB
@@ -80,8 +146,27 @@ def load_db():
         return DEFAULT_DB
 
 def save_db(data):
-    with open(DB_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    conn = get_pg_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO trabuild_store (id, data, updated_at) 
+                    VALUES ('main', %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (id) 
+                    DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP;
+                """, [json.dumps(data)])
+                conn.commit()
+        except Exception as e:
+            print(f"[DB] Error saving to PostgreSQL: {e}")
+        finally:
+            conn.close()
+
+    try:
+        with open(DB_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 # ----------------------------------------------------
 # Static Admin Dashboard Routes
