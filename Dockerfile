@@ -11,7 +11,7 @@ COPY backend/ /app/backend/
 COPY admin/ /app/admin/
 COPY assets/ /app/assets/
 
-EXPOSE 5000 10000
+EXPOSE 5000
 
 ENV FLASK_APP=backend/server.py
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-10000} --workers 2 --timeout 120 backend.server:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "backend.server:app"]
