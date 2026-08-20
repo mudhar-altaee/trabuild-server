@@ -110,7 +110,11 @@ def init_pg_tables():
     except Exception as e:
         print(f"[DB] Error initializing PostgreSQL tables: {e}")
     finally:
-        conn.close()
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 if DATABASE_URL:
     try:
@@ -133,7 +137,11 @@ def load_db():
         except Exception as e:
             print(f"[DB] Error loading from PostgreSQL: {e}")
         finally:
-            conn.close()
+            if conn:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
     # Fallback to local json file
     if not os.path.exists(DB_PATH):
@@ -160,7 +168,11 @@ def save_db(data):
         except Exception as e:
             print(f"[DB] Error saving to PostgreSQL: {e}")
         finally:
-            conn.close()
+            if conn:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
     try:
         with open(DB_PATH, "w", encoding="utf-8") as f:
@@ -169,8 +181,12 @@ def save_db(data):
         pass
 
 # ----------------------------------------------------
-# Static Admin Dashboard Routes
+# Static Admin Dashboard & Health Check Routes
 # ----------------------------------------------------
+@app.route("/healthz")
+@app.route("/ping")
+def health_check():
+    return jsonify({"status": "ok", "service": "trabuild"}), 200
 @app.route("/")
 @app.route("/admin")
 @app.route("/admin/")
