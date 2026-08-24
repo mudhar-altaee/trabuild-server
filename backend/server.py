@@ -244,12 +244,37 @@ def activate_license():
             "message": "تم حظر هذا الحساب من قبل الإدارة. يرجى التواصل مع الدعم الفني."
         }), 403
 
-    # 2. Intelligent HWID Binding & Device Session Sync
-    # Always allow the student's authenticated key to sync their active device session
-    license_item["hwid"] = client_hwid
-    license_item["status"] = "active"
-    license_item["last_active"] = get_baghdad_time()
-    save_db(db)
+    # 2. Strict 1-Device Machine Lock
+    bound_hwid = license_item.get("hwid", "").strip()
+    allowed_hwids = license_item.setdefault("allowed_hwids", [])
+    if bound_hwid and bound_hwid not in allowed_hwids:
+        allowed_hwids.append(bound_hwid)
+
+    if not bound_hwid:
+        # First-time activation -> Lock permanently to this student's computer!
+        license_item["hwid"] = client_hwid
+        license_item["allowed_hwids"] = [client_hwid]
+        license_item["status"] = "active"
+        license_item["last_active"] = get_baghdad_time()
+        save_db(db)
+    elif client_hwid == bound_hwid or client_hwid in allowed_hwids:
+        # Authorized original computer -> allow smooth login
+        license_item["status"] = "active"
+        license_item["last_active"] = get_baghdad_time()
+        save_db(db)
+    elif len(allowed_hwids) < 2:
+        # Same physical laptop adapter variation after reboot (max 2 internal network profiles per single laptop)
+        allowed_hwids.append(client_hwid)
+        license_item["status"] = "active"
+        license_item["last_active"] = get_baghdad_time()
+        save_db(db)
+    else:
+        # Completely DIFFERENT computer -> STRICT ACCESS DENIAL
+        return jsonify({
+            "success": False,
+            "hwid_mismatch": True,
+            "message": f"عذراً! هذا الترخيص مقفل على جهاز الطالب الأصلي فقط ولا يمكن تشغيله على حاسبة أخرى.\nإذا قمت بتغيير حاسبتك يرجى مراجعة إدارة الكورس لتصفير الترخيص."
+        }), 403
 
     # Return student profile and courses
     allowed_course_ids = license_item.get("course_ids", [1])
@@ -282,7 +307,9 @@ def check_heartbeat():
     if license_item.get("status") == "banned":
         return jsonify({"valid": False, "reason": "banned", "message": "تم حظر هذا الحساب فوراً من قبل الإدارة!"}), 403
 
-    if license_item.get("hwid") and license_item.get("hwid") != client_hwid:
+    allowed_hwids = license_item.get("allowed_hwids", [])
+    bound_hwid = license_item.get("hwid", "")
+    if bound_hwid and (client_hwid != bound_hwid and client_hwid not in allowed_hwids):
         return jsonify({"valid": False, "reason": "hwid_mismatch", "message": "عدم تطابق في بصمة الجهاز المصرح به."}), 403
 
     # Update last active timestamp
@@ -402,6 +429,7 @@ def reset_hwid(key):
         return jsonify({"success": False, "message": "الترخيص غير موجود."}), 404
 
     license_item["hwid"] = ""
+    license_item["allowed_hwids"] = []
     if license_item.get("status") != "banned":
         license_item["status"] = "waiting"
 
