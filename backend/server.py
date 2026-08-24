@@ -244,32 +244,22 @@ def activate_license():
             "message": "تم حظر هذا الحساب من قبل الإدارة. يرجى التواصل مع الدعم الفني."
         }), 403
 
-    # 2. Strict 1-Device Machine Lock
+    # 2. Strict 1-Device Machine Lock (مقفول على لابتوب واحد فقط)
     bound_hwid = license_item.get("hwid", "").strip()
-    allowed_hwids = license_item.setdefault("allowed_hwids", [])
-    if bound_hwid and bound_hwid not in allowed_hwids:
-        allowed_hwids.append(bound_hwid)
 
     if not bound_hwid:
         # First-time activation -> Lock permanently to this student's computer!
         license_item["hwid"] = client_hwid
-        license_item["allowed_hwids"] = [client_hwid]
         license_item["status"] = "active"
         license_item["last_active"] = get_baghdad_time()
         save_db(db)
-    elif client_hwid == bound_hwid or client_hwid in allowed_hwids:
+    elif client_hwid == bound_hwid:
         # Authorized original computer -> allow smooth login
         license_item["status"] = "active"
         license_item["last_active"] = get_baghdad_time()
         save_db(db)
-    elif len(allowed_hwids) < 2:
-        # Same physical laptop adapter variation after reboot (max 2 internal network profiles per single laptop)
-        allowed_hwids.append(client_hwid)
-        license_item["status"] = "active"
-        license_item["last_active"] = get_baghdad_time()
-        save_db(db)
     else:
-        # Completely DIFFERENT computer -> STRICT ACCESS DENIAL
+        # Any OTHER computer -> STRICT ACCESS DENIAL
         return jsonify({
             "success": False,
             "hwid_mismatch": True,
