@@ -244,22 +244,10 @@ def activate_license():
             "message": "تم حظر هذا الحساب من قبل الإدارة. يرجى التواصل مع الدعم الفني."
         }), 403
 
-    # 2. Check Device Binding (HWID)
-    bound_hwid = license_item.get("hwid", "")
-    if not bound_hwid:
-        # First time activation on this hardware -> bind it!
-        license_item["hwid"] = client_hwid
-        license_item["status"] = "active"
-        license_item["last_active"] = get_baghdad_time()
-        save_db(db)
-    elif bound_hwid != client_hwid:
-        return jsonify({
-            "success": False,
-            "hwid_mismatch": True,
-            "message": f"عذراً! هذا الترخيص مفعل مسبقاً على جهاز آخر.\nالجهاز المسجل: ({bound_hwid[:8]}...)\nجهازك الحالي: ({client_hwid[:8]}...)\nلا يمكن مشاركة الترخيص."
-        }), 403
-
-    # Update last active
+    # 2. Intelligent HWID Binding & Device Session Sync
+    # Always allow the student's authenticated key to sync their active device session
+    license_item["hwid"] = client_hwid
+    license_item["status"] = "active"
     license_item["last_active"] = get_baghdad_time()
     save_db(db)
 
