@@ -525,6 +525,7 @@ def add_lesson():
     duration = data.get("duration", "45:00 دقيقة").strip()
     stream_url = data.get("stream_url", "").strip()
     bunny_id = data.get("bunny_id", "").strip()
+    position = data.get("position", "bottom").strip() # "top" or "bottom"
 
     if not title or not stream_url:
         return jsonify({"success": False, "message": "يرجى كتابة عنوان المحاضرة ورابط الفيديو أو معرف Bunny."}), 400
@@ -534,17 +535,51 @@ def add_lesson():
     if not course:
         return jsonify({"success": False, "message": "الكورس غير موجود."}), 404
 
+    # Calculate safe unique lesson ID
+    all_existing_ids = [l["id"] for c in db["courses"] for l in c.get("lessons", [])]
+    next_id = max(all_existing_ids, default=100) + 1
+
     new_lesson = {
-        "id": int(f"{course_id}{len(course.get('lessons', [])) + 1:02d}"),
+        "id": next_id,
         "title": title,
         "duration": duration,
         "bunny_id": bunny_id or f"bunny_{uuid.uuid4().hex[:6]}",
         "stream_url": stream_url
     }
-    course.setdefault("lessons", []).append(new_lesson)
-    save_db(db)
+    
+    lessons = course.setdefault("lessons", [])
+    if position == "top":
+        lessons.insert(0, new_lesson)
+    else:
+        lessons.append(new_lesson)
 
-    return jsonify({"success": True, "lesson": new_lesson})
+    save_db(db)
+    return jsonify({"success": True, "message": "تمت إضافة المحاضرة بنجاح.", "lesson": new_lesson})
+
+@app.route("/api/admin/courses/<int:course_id>/lessons/<int:lesson_id>/move", methods=["POST"])
+def move_lesson(course_id, lesson_id):
+    data = request.json or {}
+    direction = data.get("direction", "up").strip() # "up" or "down"
+
+    db = load_db()
+    course = next((c for c in db["courses"] if c["id"] == course_id), None)
+    if not course:
+        return jsonify({"success": False, "message": "الكورس غير موجود."}), 404
+
+    lessons = course.get("lessons", [])
+    index = next((i for i, l in enumerate(lessons) if l["id"] == lesson_id), -1)
+    if index == -1:
+        return jsonify({"success": False, "message": "المحاضرة غير موجودة."}), 404
+
+    if direction == "up" and index > 0:
+        lessons[index], lessons[index - 1] = lessons[index - 1], lessons[index]
+    elif direction == "down" and index < len(lessons) - 1:
+        lessons[index], lessons[index + 1] = lessons[index + 1], lessons[index]
+    else:
+        return jsonify({"success": False, "message": "لا يمكن تحريك المحاضرة أكثر في هذا الاتجاه."}), 400
+
+    save_db(db)
+    return jsonify({"success": True, "message": "تم تغيير ترتيب المحاضرة بنجاح."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

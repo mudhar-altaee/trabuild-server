@@ -246,8 +246,13 @@ async function loadCourses() {
                   المدة: ${lesson.duration} | Bunny ID: <code>${lesson.bunny_id || 'N/A'}</code>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="badge badge-active">جاهز للبث</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button class="btn btn-sm" style="background:#f1f5f9; border:1px solid #cbd5e1; font-size:12px; padding:4px 8px;" onclick="moveLesson(${course.id}, ${lesson.id}, 'up')" title="تحريك للأعلى ⬆️" ${i === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed; background:#f1f5f9; border:1px solid #cbd5e1; font-size:12px; padding:4px 8px;"' : ''}>
+                  ⬆️
+                </button>
+                <button class="btn btn-sm" style="background:#f1f5f9; border:1px solid #cbd5e1; font-size:12px; padding:4px 8px;" onclick="moveLesson(${course.id}, ${lesson.id}, 'down')" title="تحريك للأسفل ⬇️" ${i === course.lessons.length - 1 ? 'disabled style="opacity:0.3; cursor:not-allowed; background:#f1f5f9; border:1px solid #cbd5e1; font-size:12px; padding:4px 8px;"' : ''}>
+                  ⬇️
+                </button>
                 <button class="btn btn-sm btn-secondary" onclick="openEditLessonModal(${course.id}, decodeURIComponent('${lessonJson}'))" title="تعديل بيانات المحاضرة">
                   تعديل ✏️
                 </button>
@@ -273,6 +278,24 @@ async function loadCourses() {
     });
   } catch (err) {
     console.error("Error loading courses:", err);
+  }
+}
+
+async function moveLesson(courseId, lessonId, direction) {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadCourses();
+    } else {
+      alert("خطأ: " + (data.message || "فشل تغيير الترتيب"));
+    }
+  } catch (err) {
+    alert("فشل تغيير الترتيب: " + err);
   }
 }
 
@@ -381,6 +404,7 @@ async function addLesson() {
   const duration = document.getElementById('lessonDuration').value.trim();
   const bunnyId = document.getElementById('bunnyId').value.trim();
   const streamUrl = document.getElementById('lessonUrl').value.trim();
+  const isTop = document.getElementById('lessonPositionTop') && document.getElementById('lessonPositionTop').checked;
 
   if (!title || !streamUrl) {
     alert("يرجى كتابة عنوان المحاضرة ورابط الفيديو أولاً!");
@@ -396,7 +420,8 @@ async function addLesson() {
         title,
         duration: duration || "45:00 دقيقة",
         bunny_id: bunnyId,
-        stream_url: streamUrl
+        stream_url: streamUrl,
+        position: isTop ? 'top' : 'bottom'
       })
     });
     const data = await res.json();
@@ -406,6 +431,9 @@ async function addLesson() {
       document.getElementById('lessonDuration').value = '';
       document.getElementById('bunnyId').value = '';
       document.getElementById('lessonUrl').value = '';
+      if (document.getElementById('lessonPositionTop')) {
+        document.getElementById('lessonPositionTop').checked = false;
+      }
       loadCourses();
       loadStats();
     } else {
