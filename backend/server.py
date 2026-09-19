@@ -39,30 +39,23 @@ DEFAULT_DB = {
     "courses": [
         {
             "id": 1,
-            "title": "كورس هندسة وتصميم TRABUILD المتقدم",
+            "title": "Revit Architecture 2027 - رفت معماري 2027",
             "description": "دورة احترافية شاملة لكافة برامج التصميم الهندسي وتطبيقات Revit والتصميم الإنشائي",
             "instructor": "مهندس ترابلد المعتمد",
             "lessons": [
                 {
                     "id": 101,
-                    "title": "المحاضرة 01: مقدمة في نظام TRABUILD وبيئة العمل",
-                    "duration": "45:20 دقيقة",
+                    "title": "المحاضرة 01 : مقدمة عن البرنامج",
+                    "duration": "1:30:00 ساعة ونصف",
                     "bunny_id": "sample_video_101",
-                    "stream_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/ad1acda7-7f3d-48f0-a826-0687c21962fe/playlist.m3u8"
                 },
                 {
                     "id": 102,
-                    "title": "المحاضرة 02: أدوات النمذجة المتقدمة وإدارة العناصر",
-                    "duration": "58:45 دقيقة",
-                    "bunny_id": "sample_video_102",
-                    "stream_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-                },
-                {
-                    "id": 103,
-                    "title": "المحاضرة 03: إخراج المخططات النهائية وتصدير المشروع",
-                    "duration": "50:15 دقيقة",
-                    "bunny_id": "sample_video_103",
-                    "stream_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                    "title": "المحاضرة 02 : شرح (views)",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "bunny_1286e5",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/3c4b4cd2-6654-46c0-9517-d7f8e201f10e/playlist.m3u8"
                 }
             ]
         }
@@ -70,25 +63,359 @@ DEFAULT_DB = {
     "licenses": [
         {
             "id": "1",
-            "key": "TRABUILD-2026-IRAQ-7777",
-            "student_name": "احمد علي حسين",
-            "phone": "07701234567",
-            "hwid": "",
-            "status": "active",  # active, banned, waiting
-            "course_ids": [1],
-            "created_at": "2026-08-15 10:00:00",
-            "last_active": "2026-08-15 12:00:00"
+            "key": "TRABUILD-2026-6843-A60A",
+            "student_name": "يونس نبيل حميد",
+            "phone": "07706843000",
+            "hwid": "HWID-WIN-2B5850029A5C",
+            "allowed_hwids": [
+                "HWID-WIN-2B5850029A5C"
+            ],
+            "status": "active",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "2026-08-24 06:00:00 PM"
         },
         {
             "id": "2",
-            "key": "TRABUILD-2026-IRAQ-8888",
-            "student_name": "حسين قاسم عبد",
-            "phone": "07809876543",
-            "hwid": "",
+            "key": "TRABUILD-2026-1859-B75B",
+            "student_name": "زينب عبد الرزاق حسين",
+            "phone": "07722501859",
+            "hwid": "HWID-WIN-3CE5C44614B8",
+            "allowed_hwids": [
+                "HWID-WIN-3CE5C44614B8"
+            ],
             "status": "active",
-            "course_ids": [1],
-            "created_at": "2026-08-15 11:30:00",
-            "last_active": "2026-08-15 11:30:00"
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "2026-08-24 06:00:00 PM"
+        },
+        {
+            "id": "3",
+            "key": "TRABUILD-2026-3663-0BCB",
+            "student_name": "سجى نبيل شريف",
+            "phone": "07703663000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "4",
+            "key": "TRABUILD-2026-9745-56A0",
+            "student_name": "دانية محمد خليل",
+            "phone": "07709745000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "5",
+            "key": "TRABUILD-2026-6667-C6AD",
+            "student_name": "كوثر حسن موسى",
+            "phone": "07706667000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "6",
+            "key": "TRABUILD-2026-1196-A126",
+            "student_name": "ايات احمد عباس",
+            "phone": "07701196000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "7",
+            "key": "TRABUILD-2026-4452-9A1A",
+            "student_name": "مضر المعمار",
+            "phone": "07704452000",
+            "hwid": "HWID-WIN-8C668D6B9ED7",
+            "allowed_hwids": [
+                "HWID-WIN-8C668D6B9ED7"
+            ],
+            "status": "active",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "2026-08-24 06:00:00 PM"
+        },
+        {
+            "id": "8",
+            "key": "TRABUILD-2026-0050-B5F2",
+            "student_name": "ليليان ليث خالص",
+            "phone": "07700050000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "9",
+            "key": "TRABUILD-2026-8899-284C",
+            "student_name": "قمر احمد جابر",
+            "phone": "07708899000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "10",
+            "key": "TRABUILD-2026-7130-F1CE",
+            "student_name": "محمد ناظم داود",
+            "phone": "07707130000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "11",
+            "key": "TRABUILD-2026-8663-A825",
+            "student_name": "ديما عمر يوسف",
+            "phone": "07708663000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "12",
+            "key": "TRABUILD-2026-5317-FABC",
+            "student_name": "رتاج منتصر هاشم",
+            "phone": "07705317000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "13",
+            "key": "TRABUILD-2026-2431-580A",
+            "student_name": "احمد رفعت محمد",
+            "phone": "07702431000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "14",
+            "key": "TRABUILD-2026-1710-0A31",
+            "student_name": "حوراء حسين رسه",
+            "phone": "07701710000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "15",
+            "key": "TRABUILD-2026-6289-B0B1",
+            "student_name": "ياسر حيدر محمد",
+            "phone": "07706289000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "16",
+            "key": "TRABUILD-2026-3624-657A",
+            "student_name": "عبد الله احمد عبد الله",
+            "phone": "07703624000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "17",
+            "key": "TRABUILD-2026-1686-D285",
+            "student_name": "الحسن باسم محمد",
+            "phone": "07701686000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "18",
+            "key": "TRABUILD-2026-8888-90C7",
+            "student_name": "هشام ال",
+            "phone": "07708888000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "19",
+            "key": "TRABUILD-2026-3950-F618",
+            "student_name": "قمر نورس كاظم",
+            "phone": "07703950000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "20",
+            "key": "TRABUILD-2026-4376-04BA",
+            "student_name": "مريم حميد مزيعل",
+            "phone": "07704376000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "21",
+            "key": "TRABUILD-2026-2568-C690",
+            "student_name": "علي خضير عباس",
+            "phone": "07702568000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "22",
+            "key": "TRABUILD-2026-8533-1A0D",
+            "student_name": "مصطفى ثائر علي",
+            "phone": "07708533000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "23",
+            "key": "TRABUILD-2026-6366-9DBF",
+            "student_name": "محمد احمد صالح",
+            "phone": "07706366000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "24",
+            "key": "TRABUILD-2026-2887-59FE",
+            "student_name": "رقية حافظ صاحب",
+            "phone": "07702887000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
+        },
+        {
+            "id": "25",
+            "key": "TRABUILD-2026-0000-2C0E",
+            "student_name": "رقية حسين محمد",
+            "phone": "07700000000",
+            "hwid": "",
+            "allowed_hwids": [],
+            "status": "waiting",
+            "course_ids": [
+                1
+            ],
+            "created_at": "2026-08-18 12:00:00 PM",
+            "last_active": "لم يسجل دخول بعد"
         }
     ]
 }
@@ -137,6 +464,15 @@ def init_pg_tables():
                     "INSERT INTO trabuild_store (id, data) VALUES ('main', %s);",
                     [json.dumps(DEFAULT_DB)]
                 )
+            else:
+                existing = row[0]
+                if isinstance(existing, str):
+                    existing = json.loads(existing)
+                if len(existing.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
+                    cur.execute(
+                        "UPDATE trabuild_store SET data = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 'main';",
+                        [json.dumps(DEFAULT_DB)]
+                    )
             conn.commit()
             print("[DB] PostgreSQL initialized successfully!")
     except Exception as e:
@@ -165,6 +501,9 @@ def load_db():
                     data = row[0]
                     if isinstance(data, str):
                         data = json.loads(data)
+                    if len(data.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
+                        save_db(DEFAULT_DB)
+                        return DEFAULT_DB
                     return data
         except Exception as e:
             print(f"[DB] Error loading from PostgreSQL: {e}")
@@ -181,7 +520,11 @@ def load_db():
         return DEFAULT_DB
     try:
         with open(DB_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if len(data.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
+                save_db(DEFAULT_DB)
+                return DEFAULT_DB
+            return data
     except Exception:
         return DEFAULT_DB
 
