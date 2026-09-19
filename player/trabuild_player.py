@@ -159,28 +159,37 @@ class LessonCardWidget(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(6)
+        layout.setContentsMargins(14, 12, 14, 12)
+        layout.setSpacing(8)
         
-        # Title Label with WordWrap (No Horizontal Scrollbar!)
-        self.title_lbl = QLabel(f"▶ {lesson.get('title', '')}")
+        # Header Row: Lesson Number Pill + Title
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
+        header_row.setSpacing(10)
+        
+        self.badge_lbl = QLabel(f"#{index + 1:02d}")
+        self.badge_lbl.setAlignment(Qt.AlignCenter)
+        self.badge_lbl.setFixedSize(36, 24)
+        header_row.addWidget(self.badge_lbl)
+        
+        # Title Label with WordWrap
+        self.title_lbl = QLabel(lesson.get('title', ''))
         self.title_lbl.setWordWrap(True)
         self.title_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.title_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: #0f172a;")
-        layout.addWidget(self.title_lbl)
+        header_row.addWidget(self.title_lbl, 1)
         
-        # Footer Row (Duration + Status)
+        layout.addLayout(header_row)
+        
+        # Footer Row (Duration + Action Status)
         footer = QHBoxLayout()
         footer.setContentsMargins(0, 0, 0, 0)
         
-        self.dur_lbl = QLabel(f"⏱ {lesson.get('duration', '45:00 دقيقة')}")
-        self.dur_lbl.setStyleSheet("font-size: 11px; color: #64748b; font-weight: 600;")
+        self.dur_lbl = QLabel(f"⏱ {lesson.get('duration', 'ساعة ونصف')}")
         footer.addWidget(self.dur_lbl)
         
         footer.addStretch()
         
-        self.status_lbl = QLabel("جاهز للبث")
-        self.status_lbl.setStyleSheet("font-size: 10px; color: #007ea7; font-weight: bold; background: #f0f9ff; padding: 2px 6px; border-radius: 4px;")
+        self.status_lbl = QLabel("عرض ▶")
         footer.addWidget(self.status_lbl)
         
         layout.addLayout(footer)
@@ -194,29 +203,45 @@ class LessonCardWidget(QFrame):
         if self.is_selected:
             self.setStyleSheet("""
                 QFrame {
-                    background-color: #e0f2fe;
-                    border: 2px solid #007ea7;
-                    border-radius: 10px;
+                    background-color: #eff6ff;
+                    border: 2px solid #0284c7;
+                    border-radius: 12px;
                 }
             """)
-            self.title_lbl.setStyleSheet("font-size: 13px; font-weight: 800; color: #007ea7;")
-            self.status_lbl.setText("▶ قيد المشاهدة")
-            self.status_lbl.setStyleSheet("font-size: 10px; color: #ffffff; font-weight: bold; background: #007ea7; padding: 2px 6px; border-radius: 4px;")
+            self.badge_lbl.setStyleSheet("""
+                background-color: #0284c7;
+                color: #ffffff;
+                font-size: 11px;
+                font-weight: 800;
+                border-radius: 6px;
+            """)
+            self.title_lbl.setStyleSheet("font-size: 13px; font-weight: 800; color: #0369a1;")
+            self.dur_lbl.setStyleSheet("font-size: 11px; color: #0284c7; font-weight: 600;")
+            self.status_lbl.setText("● قيد التشغيل")
+            self.status_lbl.setStyleSheet("font-size: 10px; color: #ffffff; font-weight: bold; background: #0284c7; padding: 3px 8px; border-radius: 6px;")
         else:
             self.setStyleSheet("""
                 QFrame {
                     background-color: #ffffff;
                     border: 1px solid #e2e8f0;
-                    border-radius: 10px;
+                    border-radius: 12px;
                 }
                 QFrame:hover {
-                    background-color: #f0f9ff;
+                    background-color: #f8fafc;
                     border-color: #38bdf8;
                 }
             """)
-            self.title_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: #0f172a;")
-            self.status_lbl.setText("جاهز للبث")
-            self.status_lbl.setStyleSheet("font-size: 10px; color: #007ea7; font-weight: bold; background: #f0f9ff; padding: 2px 6px; border-radius: 4px;")
+            self.badge_lbl.setStyleSheet("""
+                background-color: #f1f5f9;
+                color: #64748b;
+                font-size: 11px;
+                font-weight: 800;
+                border-radius: 6px;
+            """)
+            self.title_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: #1e293b;")
+            self.dur_lbl.setStyleSheet("font-size: 11px; color: #64748b; font-weight: 600;")
+            self.status_lbl.setText("عرض ▶")
+            self.status_lbl.setStyleSheet("font-size: 10px; color: #0284c7; font-weight: bold; background: #f0f9ff; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 6px;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -683,7 +708,12 @@ class TrabuildPlayerWindow(QMainWindow):
         # Quality Selector
         self.quality_combo = QComboBox()
         self.quality_combo.setFocusPolicy(Qt.NoFocus)
-        self.quality_combo.addItems(["⚙️ تلقائي", "1080p", "720p", "480p", "360p"])
+        self.quality_combo.addItems([
+            "⚡ 720p HD (سريعة - موصى بها)",
+            "💎 1080p FHD (أعلى دقة)",
+            "🌐 تلقائي (Adaptive Auto)"
+        ])
+        self.quality_combo.setCurrentIndex(0) # Default to 720p HD for instant playback!
         self.quality_combo.setStyleSheet("""
             QComboBox {
                 background-color: #1e293b;
@@ -1054,15 +1084,40 @@ class TrabuildPlayerWindow(QMainWindow):
         for i, card in enumerate(self.lesson_cards):
             card.set_selected(i == index)
             
-        self.current_title_lbl.setText(lesson.get("title", ""))
+    def get_stream_url_for_quality(self, orig_url: str, quality_index: int) -> str:
+        """Translates master m3u8 to specific ultra-fast HLS quality stream."""
+        if not orig_url or "playlist.m3u8" not in orig_url:
+            return orig_url
         
-        # Play Stream
-        stream_url = lesson.get("stream_url", "")
-        self.media_player.setSource(QUrl(stream_url))
-        self.media_player.play()
-        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
-        self.sync_overlay_geometry()
-        self.watermark_overlay.move_to_random_pos()
+        # 0: 720p HD, 1: 1080p FHD, 2: Auto Adaptive
+        quality_map = {
+            0: "720p/video.m3u8",
+            1: "1080p/video.m3u8",
+            2: "playlist.m3u8"
+        }
+        if quality_index in quality_map:
+            return orig_url.replace("playlist.m3u8", quality_map[quality_index])
+        return orig_url
+
+    def select_lesson(self, index):
+        if 0 <= index < len(self.current_lessons):
+            self.current_lesson_index = index
+            lesson = self.current_lessons[index]
+            
+            # Highlight active card
+            for i, card in enumerate(self.lesson_cards):
+                card.set_selected(i == index)
+                
+            self.current_title_lbl.setText(lesson.get("title", ""))
+            
+            # Play Stream with fast quality resolution
+            stream_url = lesson.get("stream_url", "")
+            resolved_url = self.get_stream_url_for_quality(stream_url, self.quality_combo.currentIndex())
+            self.media_player.setSource(QUrl(resolved_url))
+            self.media_player.play()
+            self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+            self.sync_overlay_geometry()
+            self.watermark_overlay.move_to_random_pos()
 
     # ----------------------------------------------------
     # 5. Media Player Controls
@@ -1107,7 +1162,7 @@ class TrabuildPlayerWindow(QMainWindow):
             self.media_player.setPlaybackRate(speeds[index])
 
     def change_quality(self, index):
-        """Switches stream quality for Bunny.net / Direct links."""
+        """Switches stream quality with instant playback preservation."""
         if self.current_lesson_index < 0 or self.current_lesson_index >= len(self.current_lessons):
             return
         
@@ -1117,23 +1172,17 @@ class TrabuildPlayerWindow(QMainWindow):
             return
             
         cur_pos = self.media_player.position()
+        was_playing = self.media_player.playbackState() == QMediaPlayer.PlayingState
         
-        # Qualities: 0: Auto (m3u8), 1: 1080p, 2: 720p, 3: 480p, 4: 360p
-        quality_map = {
-            1: "play_1080p.mp4",
-            2: "play_720p.mp4",
-            3: "play_480p.mp4",
-            4: "play_360p.mp4"
-        }
-        
-        target_url = orig_url
-        if index in quality_map and "playlist.m3u8" in orig_url:
-            target_url = orig_url.replace("playlist.m3u8", quality_map[index])
-            
+        target_url = self.get_stream_url_for_quality(orig_url, index)
         self.media_player.setSource(QUrl(target_url))
-        self.media_player.play()
-        self.media_player.setPosition(cur_pos)
-        self.btn_play_pause.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+        if was_playing:
+            self.media_player.play()
+        if cur_pos > 0:
+            self.media_player.setPosition(cur_pos)
+        self.btn_play_pause.setIcon(self.style().standardIcon(
+            QStyle.SP_MediaPause if was_playing else QStyle.SP_MediaPlay
+        ))
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
