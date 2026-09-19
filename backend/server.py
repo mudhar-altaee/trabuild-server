@@ -100,9 +100,12 @@ def get_pg_conn():
         return None
     try:
         import psycopg2
+        import re
         url = DATABASE_URL
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
+        if "@dpg-" in url and ".render.com" not in url:
+            url = re.sub(r"@(dpg-[a-z0-9]+-[a-z0-9]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
         conn = psycopg2.connect(url)
         return conn
     except Exception as e:
@@ -222,26 +225,11 @@ def health_check():
             db_status = "postgres_failed"
     except Exception as e:
         err_msg = str(e)
-    
-    # Check psycopg2 error directly
-    if db_status == "postgres_failed":
-        try:
-            import psycopg2
-            url = DATABASE_URL
-            if url.startswith("postgres://"):
-                url = url.replace("postgres://", "postgresql://", 1)
-            c = psycopg2.connect(url)
-            c.close()
-            db_status = "postgres"
-        except Exception as e:
-            err_msg = str(e)
 
     return jsonify({
         "status": "ok",
         "service": "trabuild",
-        "db": db_status,
-        "has_db_url": bool(DATABASE_URL),
-        "db_error": err_msg
+        "db": db_status
     }), 200
 @app.route("/")
 @app.route("/admin")
