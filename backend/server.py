@@ -210,7 +210,22 @@ def save_db(data):
 @app.route("/healthz")
 @app.route("/ping")
 def health_check():
-    return jsonify({"status": "ok", "service": "trabuild"}), 200
+    db_status = "local"
+    conn = get_pg_conn()
+    if conn:
+        db_status = "postgres"
+        try:
+            conn.close()
+        except Exception:
+            pass
+    elif DATABASE_URL:
+        db_status = "postgres_failed"
+    return jsonify({
+        "status": "ok",
+        "service": "trabuild",
+        "db": db_status,
+        "has_db_url": bool(DATABASE_URL)
+    }), 200
 @app.route("/")
 @app.route("/admin")
 @app.route("/admin/")
