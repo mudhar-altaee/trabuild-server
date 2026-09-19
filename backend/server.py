@@ -47,15 +47,78 @@ DEFAULT_DB = {
                     "id": 101,
                     "title": "المحاضرة 01 : مقدمة عن البرنامج",
                     "duration": "1:30:00 ساعة ونصف",
-                    "bunny_id": "sample_video_101",
+                    "bunny_id": "ad1acda7-7f3d-48f0-a826-0687c21962fe",
                     "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/ad1acda7-7f3d-48f0-a826-0687c21962fe/playlist.m3u8"
                 },
                 {
                     "id": 102,
                     "title": "المحاضرة 02 : شرح (views)",
                     "duration": "1:30:00 ساعة ونصف",
-                    "bunny_id": "bunny_1286e5",
+                    "bunny_id": "3c4b4cd2-6654-46c0-9517-d7f8e201f10e",
                     "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/3c4b4cd2-6654-46c0-9517-d7f8e201f10e/playlist.m3u8"
+                },
+                {
+                    "id": 103,
+                    "title": "المحاضرة 03 : المحاضرة الثالثة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "3e10d737-098d-459d-ac34-2501590ddd36",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/3e10d737-098d-459d-ac34-2501590ddd36/playlist.m3u8"
+                },
+                {
+                    "id": 104,
+                    "title": "المحاضرة 04 : المحاضرة الرابعة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "4cf8eede-ee78-48ba-be8b-ca282f3cc06f",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/4cf8eede-ee78-48ba-be8b-ca282f3cc06f/playlist.m3u8"
+                },
+                {
+                    "id": 105,
+                    "title": "المحاضرة 05 : شرح (Ai Render & Curtain walls)",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "5979bc80-60d4-4fbc-a5d5-46fa13978929",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/5979bc80-60d4-4fbc-a5d5-46fa13978929/playlist.m3u8"
+                },
+                {
+                    "id": 106,
+                    "title": "المحاضرة 06 : المحاضرة السادسة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "bcbdba58-e5cc-4532-a8d2-68a787794028",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/bcbdba58-e5cc-4532-a8d2-68a787794028/playlist.m3u8"
+                },
+                {
+                    "id": 107,
+                    "title": "المحاضرة 07 : المحاضرة السابعة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "57548971-22f9-4c56-8b8f-fc21697fff40",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/57548971-22f9-4c56-8b8f-fc21697fff40/playlist.m3u8"
+                },
+                {
+                    "id": 108,
+                    "title": "المحاضرة 08 : المحاضرة الثامنة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "bdce8bb4-c845-4524-949f-e4210e95165c",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/bdce8bb4-c845-4524-949f-e4210e95165c/playlist.m3u8"
+                },
+                {
+                    "id": 109,
+                    "title": "المحاضرة 09 : شرح (stairs)",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "398a542b-dc7e-4139-85ba-d1b7cd86f8e8",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/398a542b-dc7e-4139-85ba-d1b7cd86f8e8/playlist.m3u8"
+                },
+                {
+                    "id": 110,
+                    "title": "المحاضرة 10 : 10- محاضرة",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "ee8109a9-b0f8-4b85-9ed1-92db25f254a9",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/ee8109a9-b0f8-4b85-9ed1-92db25f254a9/playlist.m3u8"
+                },
+                {
+                    "id": 111,
+                    "title": "المحاضرة 11 : محاضرة - 11",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "bunny_id": "65a81b01-ccc2-49b0-8039-13aca216fb3c",
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/65a81b01-ccc2-49b0-8039-13aca216fb3c/playlist.m3u8"
                 }
             ]
         }
