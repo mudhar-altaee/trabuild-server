@@ -211,20 +211,37 @@ def save_db(data):
 @app.route("/ping")
 def health_check():
     db_status = "local"
-    conn = get_pg_conn()
-    if conn:
-        db_status = "postgres"
-        try:
+    conn = None
+    err_msg = ""
+    try:
+        conn = get_pg_conn()
+        if conn:
+            db_status = "postgres"
             conn.close()
-        except Exception:
-            pass
-    elif DATABASE_URL:
-        db_status = "postgres_failed"
+        elif DATABASE_URL:
+            db_status = "postgres_failed"
+    except Exception as e:
+        err_msg = str(e)
+    
+    # Check psycopg2 error directly
+    if db_status == "postgres_failed":
+        try:
+            import psycopg2
+            url = DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            c = psycopg2.connect(url)
+            c.close()
+            db_status = "postgres"
+        except Exception as e:
+            err_msg = str(e)
+
     return jsonify({
         "status": "ok",
         "service": "trabuild",
         "db": db_status,
-        "has_db_url": bool(DATABASE_URL)
+        "has_db_url": bool(DATABASE_URL),
+        "db_error": err_msg
     }), 200
 @app.route("/")
 @app.route("/admin")
