@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة تحكم TRABUILD Cloud - إدارة التراخيص والكورسات</title>
+  <title>منظومة TRABUILD - الإدارة والتحكم</title>
   <link rel="stylesheet" href="/admin/styles.css">
   <link rel="stylesheet" href="/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,10 +18,6 @@
       <img src="/assets/logo.png" alt="Logo" class="brand-logo" style="max-height: 46px; max-width: 220px; width: auto; object-fit: contain;" onerror="this.src='/assets/trabuild_icone.png'">
     </div>
     <div class="header-status" style="display:flex; align-items:center; gap:16px;">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <div class="live-pulse"></div>
-        <span class="status-text">السيرفر: <strong>Active Online</strong></span>
-      </div>
       <button id="logoutBtn" class="btn btn-sm" onclick="adminLogout()" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-weight:bold; display:none; padding:6px 12px; cursor:pointer;">
         🚪 خروج
       </button>
@@ -66,8 +62,7 @@
     <!-- Navigation Tabs -->
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('tabStudents')">🔑 إدارة الطلاب والتراخيص</button>
-      <button class="tab-btn" onclick="switchTab('tabCourses')">🎥 إدارة الكورسات و Bunny.net</button>
-      <button class="tab-btn" onclick="switchTab('tabCloud')">☁️ إعدادات الربط السحابي (AWS / Bunny)</button>
+      <button class="tab-btn" onclick="switchTab('tabCourses')">🎥 إدارة الكورسات والمحاضرات</button>
     </div>
 
     <!-- TAB 1: Student & License Management -->
@@ -144,12 +139,12 @@
 
     </section>
 
-    <!-- TAB 2: Courses & Bunny Stream Manager -->
+    <!-- TAB 2: Courses & Lessons Manager -->
     <section id="tabCourses" class="tab-pane">
       <div class="card">
         <div class="card-header">
-          <h2>🎥 إضافة محاضرة جديدة (ربط Bunny.net)</h2>
-          <p>أضف رابط البث المباشر المشفر أو معرّف المحاضرة في Bunny Stream</p>
+          <h2>🎥 إضافة محاضرة جديدة</h2>
+          <p>أدخل بيانات وعنوان ورابط البث المشفر للمحاضرة</p>
         </div>
         <div class="generator-form">
           <div class="form-group">
@@ -161,12 +156,12 @@
             <input type="text" id="lessonDuration" class="form-control" placeholder="مثال: 52:10 دقيقة">
           </div>
           <div class="form-group">
-            <label>معرّف Bunny Stream ID (اختياري):</label>
-            <input type="text" id="bunnyId" class="form-control" placeholder="مثال: bunny_vid_9981">
+            <label>معرّف الفيديو الداخلي (اختياري):</label>
+            <input type="text" id="bunnyId" class="form-control" placeholder="مثال: vid_101">
           </div>
           <div class="form-group" style="grid-column: 1 / -1;">
             <label>رابط الفيديو / البث المشفر (Stream URL):</label>
-            <input type="text" id="lessonUrl" class="form-control" placeholder="https://vz-xxxx.b-cdn.net/.../playlist.m3u8 أو رابط MP4">
+            <input type="text" id="lessonUrl" class="form-control" placeholder="رابط البث المشفر m3u8 أو MP4">
           </div>
           <div class="form-group" style="grid-column: 1 / -1; display:flex; align-items:center; gap:10px; background:#f0f9ff; padding:10px 14px; border-radius:8px; border:1px solid #bae6fd;">
             <input type="checkbox" id="lessonPositionTop" style="width:20px; height:20px; cursor:pointer;">
@@ -185,30 +180,6 @@
         </div>
         <div id="coursesContainer" class="courses-grid">
           <!-- Dynamically loaded -->
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: Cloud & Security Settings -->
-    <section id="tabCloud" class="tab-pane">
-      <div class="card">
-        <div class="card-header">
-          <h2>☁️ إعدادات الربط السحابي والـ Deployment</h2>
-          <p>بيانات الاتصال بين السيرفر السحابي وتطبيق الطلاب</p>
-        </div>
-        <div class="cloud-info-box">
-          <div class="info-row">
-            <span class="info-label">عنوان السيرفر الحالي (Backend Endpoint):</span>
-            <code id="apiEndpointText">http://localhost:5000</code>
-          </div>
-          <div class="info-row">
-            <span class="info-label">جاهزية النشر على AWS / Google Cloud:</span>
-            <span class="badge badge-success">جاهز (Dockerized & Stateless)</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">مستوى الحماية المطبق:</span>
-            <span class="badge badge-shield">Hardware-Binding + Anti-Capture + Dynamic Watermark</span>
-          </div>
         </div>
       </div>
     </section>
@@ -234,7 +205,7 @@
         <input type="text" id="editLessonDuration" class="form-control">
       </div>
       <div class="form-group" style="margin-bottom:12px;">
-        <label>معرّف Bunny Stream ID:</label>
+        <label>معرّف الفيديو الداخلي (Video ID):</label>
         <input type="text" id="editBunnyId" class="form-control">
       </div>
       <div class="form-group" style="margin-bottom:18px;">

@@ -361,7 +361,7 @@ async function loadCourses() {
               <div>
                 <strong>${i + 1}. ${lesson.title}</strong>
                 <div style="color:#64748b; font-size:12px; margin-top:2px;">
-                  المدة: ${lesson.duration} | Bunny ID: <code>${lesson.bunny_id || 'N/A'}</code>
+                  المدة: ${lesson.duration} | معرّف الفيديو: <code>${lesson.bunny_id || 'N/A'}</code>
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
