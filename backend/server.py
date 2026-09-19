@@ -2,11 +2,35 @@ import os
 import json
 import uuid
 import datetime
+import hashlib
+from functools import wraps
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder="../admin", static_url_path="/admin")
 CORS(app)
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Trabuild@2018@Trabuild@2026")
+
+def get_admin_token():
+    salt = "TRABUILD_SECURE_ADMIN_HASH_SALT_2026"
+    return hashlib.sha256(f"{ADMIN_PASSWORD}_{salt}".encode("utf-8")).hexdigest()
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization", "")
+        token = ""
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+        elif request.headers.get("X-Admin-Token"):
+            token = request.headers.get("X-Admin-Token").strip()
+        
+        expected = get_admin_token()
+        if not token or token != expected:
+            return jsonify({"success": False, "message": "غير مصرح - مطلوب تسجيل دخول الإدارة."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.json")
 
@@ -324,10 +348,31 @@ def get_courses():
     return jsonify({"success": True, "courses": db.get("courses", [])})
 
 # ----------------------------------------------------
-# Admin Dashboard API Endpoints
+# Admin Dashboard API Endpoints (Secured with @admin_required)
 # ----------------------------------------------------
 
+@app.route("/api/admin/login", methods=["POST"])
+def admin_login():
+    data = request.json or {}
+    pwd = data.get("password", "").strip()
+    if pwd == ADMIN_PASSWORD:
+        return jsonify({
+            "success": True,
+            "token": get_admin_token(),
+            "message": "تم تسجيل دخول الإدارة بنجاح."
+        })
+    return jsonify({
+        "success": False,
+        "message": "كلمة المرور غير صحيحة! يرجى المحاولة مرة أخرى."
+    }), 401
+
+@app.route("/api/admin/verify", methods=["GET", "POST"])
+@admin_required
+def admin_verify():
+    return jsonify({"success": True, "valid": True})
+
 @app.route("/api/admin/stats", methods=["GET"])
+@admin_required
 def get_admin_stats():
     db = load_db()
     licenses = db.get("licenses", [])
@@ -351,11 +396,13 @@ def get_admin_stats():
     })
 
 @app.route("/api/admin/licenses", methods=["GET"])
+@admin_required
 def get_admin_licenses():
     db = load_db()
     return jsonify({"success": True, "licenses": db.get("licenses", [])})
 
 @app.route("/api/admin/licenses", methods=["POST"])
+@admin_required
 def create_license():
     data = request.json or {}
     name = data.get("name", "").strip()
@@ -400,6 +447,7 @@ def create_license():
     return jsonify({"success": True, "license": new_license})
 
 @app.route("/api/admin/licenses/<key>/toggle-ban", methods=["POST"])
+@admin_required
 def toggle_ban(key):
     db = load_db()
     license_item = next((l for l in db["licenses"] if l["key"].upper() == key.upper()), None)
@@ -422,6 +470,7 @@ def toggle_ban(key):
     })
 
 @app.route("/api/admin/licenses/<key>/reset-hwid", methods=["POST"])
+@admin_required
 def reset_hwid(key):
     db = load_db()
     license_item = next((l for l in db["licenses"] if l["key"].upper() == key.upper()), None)
@@ -440,6 +489,7 @@ def reset_hwid(key):
     })
 
 @app.route("/api/admin/licenses/<key>/delete", methods=["POST", "DELETE"])
+@admin_required
 def delete_license(key):
     db = load_db()
     initial_count = len(db["licenses"])
@@ -457,6 +507,7 @@ def delete_license(key):
     return jsonify({"success": True, "message": f"تم مسح حساب الطالب ({target_name}) نهائياً بنجاح."})
 
 @app.route("/api/admin/courses/<int:course_id>/rename", methods=["POST"])
+@admin_required
 def rename_course(course_id):
     data = request.json or {}
     new_title = data.get("title", "").strip()
@@ -473,6 +524,7 @@ def rename_course(course_id):
     return jsonify({"success": True, "message": "تم تعديل اسم الكورس بنجاح.", "title": new_title})
 
 @app.route("/api/admin/courses/<int:course_id>/lessons/<int:lesson_id>/delete", methods=["POST", "DELETE"])
+@admin_required
 def delete_lesson(course_id, lesson_id):
     db = load_db()
     course = next((c for c in db["courses"] if c["id"] == course_id), None)
@@ -488,6 +540,7 @@ def delete_lesson(course_id, lesson_id):
     return jsonify({"success": True, "message": "تم حذف المحاضرة بنجاح."})
 
 @app.route("/api/admin/courses/<int:course_id>/lessons/<int:lesson_id>/update", methods=["POST", "PUT"])
+@admin_required
 def update_lesson(course_id, lesson_id):
     data = request.json or {}
     title = data.get("title", "").strip()
@@ -518,6 +571,7 @@ def update_lesson(course_id, lesson_id):
     return jsonify({"success": True, "message": "تم تعديل بيانات المحاضرة بنجاح.", "lesson": lesson})
 
 @app.route("/api/admin/courses", methods=["POST"])
+@admin_required
 def add_lesson():
     data = request.json or {}
     course_id = int(data.get("course_id", 1))
@@ -557,6 +611,7 @@ def add_lesson():
     return jsonify({"success": True, "message": "تمت إضافة المحاضرة بنجاح.", "lesson": new_lesson})
 
 @app.route("/api/admin/courses/<int:course_id>/lessons/<int:lesson_id>/move", methods=["POST"])
+@admin_required
 def move_lesson(course_id, lesson_id):
     data = request.json or {}
     direction = data.get("direction", "up").strip() # "up" or "down"

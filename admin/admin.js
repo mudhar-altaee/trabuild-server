@@ -2,15 +2,133 @@
 
 const API_BASE = window.location.origin;
 
+function getAdminToken() {
+  return localStorage.getItem('trabuild_admin_token') || '';
+}
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = getAdminToken();
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...extraHeaders
+  };
+}
+
+async function adminFetch(url, options = {}) {
+  options.headers = {
+    ...getAuthHeaders(options.headers || {})
+  };
+  
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    showLoginModal("انتهت جلسة الدخول أو كلمة المرور غير صحيحة. يرجى تسجيل الدخول مجدداً.");
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadStats();
-  loadLicenses();
-  loadCourses();
+  verifyInitialAuth();
   
   // Set endpoint display
   const endpointEl = document.getElementById('apiEndpointText');
   if (endpointEl) endpointEl.innerText = API_BASE;
 });
+
+async function verifyInitialAuth() {
+  const token = getAdminToken();
+  if (!token) {
+    showLoginModal();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/verify`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      hideLoginModal();
+      loadStats();
+      loadLicenses();
+      loadCourses();
+    } else {
+      showLoginModal();
+    }
+  } catch (err) {
+    showLoginModal();
+  }
+}
+
+async function handleAdminLogin(e) {
+  if (e) e.preventDefault();
+  const pwdInput = document.getElementById('adminPasswordInput');
+  const errEl = document.getElementById('loginErrorMsg');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+  const pwd = pwdInput.value.trim();
+
+  if (!pwd) return;
+
+  errEl.classList.add('hidden');
+  submitBtn.disabled = true;
+  submitBtn.innerText = "جاري التحقق...";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      localStorage.setItem('trabuild_admin_token', data.token);
+      hideLoginModal();
+      loadStats();
+      loadLicenses();
+      loadCourses();
+    } else {
+      errEl.innerText = data.message || "كلمة المرور غير صحيحة!";
+      errEl.classList.remove('hidden');
+    }
+  } catch (err) {
+    errEl.innerText = "فشل الاتصال بالسيرفر: " + err.message;
+    errEl.classList.remove('hidden');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerText = "🔓 تسجيل الدخول إلى لوحة التحكم";
+  }
+}
+
+function adminLogout() {
+  localStorage.removeItem('trabuild_admin_token');
+  showLoginModal();
+}
+
+function showLoginModal(msg) {
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.remove('hidden');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.style.display = 'none';
+  if (msg) {
+    const errEl = document.getElementById('loginErrorMsg');
+    if (errEl) {
+      errEl.innerText = msg;
+      errEl.classList.remove('hidden');
+    }
+  }
+  const pwdInput = document.getElementById('adminPasswordInput');
+  if (pwdInput) {
+    pwdInput.value = '';
+    pwdInput.focus();
+  }
+}
+
+function hideLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.classList.add('hidden');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.style.display = 'inline-block';
+}
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -26,7 +144,7 @@ function switchTab(tabId) {
 // ----------------------------------------------------
 async function loadStats() {
   try {
-    const res = await fetch(`${API_BASE}/api/admin/stats`);
+    const res = await adminFetch(`${API_BASE}/api/admin/stats`);
     const data = await res.json();
     if (data.success) {
       document.getElementById('statTotalStudents').innerText = data.stats.total_students;
@@ -47,7 +165,7 @@ async function loadLicenses() {
   tbody.innerHTML = '<tr><td colspan="8" class="text-center">جاري تحديث قائمة الطلاب...</td></tr>';
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/licenses`);
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses`);
     const data = await res.json();
     if (!data.success || !data.licenses.length) {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center">لا توجد تراخيص منشأة بعد.</td></tr>';
@@ -114,7 +232,7 @@ async function createLicense() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/licenses`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, course_id: courseId, custom_key: customKey })
@@ -150,7 +268,7 @@ async function toggleBan(key) {
   if (!confirm(`هل أنت متأكد من تغيير حالة الحظر لهذا الترخيص (${key})؟`)) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/licenses/${key}/toggle-ban`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/toggle-ban`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);
@@ -166,7 +284,7 @@ async function resetHwid(key) {
   if (!confirm(`هل أنت متأكد من تصفير بصمة الجهاز للترخيص (${key})؟\nسيتمكن الطالب من تفعيله على جهاز جديد.`)) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/licenses/${key}/reset-hwid`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/reset-hwid`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);
@@ -182,7 +300,7 @@ async function deleteLicense(key, name) {
   if (!confirm(`⚠️ تحذير: هل أنت متأكد من مسح حساب الطالب (${name}) نهائياً من المنظومة؟`)) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/licenses/${key}/delete`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/delete`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);
@@ -283,7 +401,7 @@ async function loadCourses() {
 
 async function moveLesson(courseId, lessonId, direction) {
   try {
-    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/move`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/move`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ direction })
@@ -329,7 +447,7 @@ async function saveLessonUpdate() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/update`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -362,7 +480,7 @@ async function renameCourse(courseId) {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/rename`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/courses/${courseId}/rename`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: newTitle.trim() })
@@ -383,7 +501,7 @@ async function deleteLesson(courseId, lessonId, title) {
   if (!confirm(`هل أنت متأكد من حذف المحاضرة:\n("${title}")؟`)) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/delete`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/courses/${courseId}/lessons/${lessonId}/delete`, {
       method: 'POST'
     });
     const data = await res.json();
@@ -412,7 +530,7 @@ async function addLesson() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/courses`, {
+    const res = await adminFetch(`${API_BASE}/api/admin/courses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

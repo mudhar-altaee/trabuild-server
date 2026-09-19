@@ -17,9 +17,14 @@
     <div class="header-brand">
       <img src="/assets/logo.png" alt="Logo" class="brand-logo" style="max-height: 46px; max-width: 220px; width: auto; object-fit: contain;" onerror="this.src='/assets/trabuild_icone.png'">
     </div>
-    <div class="header-status">
-      <div class="live-pulse"></div>
-      <span class="status-text">السيرفر متصل: <strong>Active Online</strong></span>
+    <div class="header-status" style="display:flex; align-items:center; gap:16px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="live-pulse"></div>
+        <span class="status-text">السيرفر: <strong>Active Online</strong></span>
+      </div>
+      <button id="logoutBtn" class="btn btn-sm" onclick="adminLogout()" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-weight:bold; display:none; padding:6px 12px; cursor:pointer;">
+        🚪 خروج
+      </button>
     </div>
   </header>
 
@@ -240,6 +245,26 @@
         <button class="btn btn-secondary" onclick="closeEditLessonModal()">إلغاء</button>
         <button class="btn btn-primary" onclick="saveLessonUpdate()">💾 حفظ التعديلات</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal Screen -->
+  <div id="loginModal" class="login-overlay">
+    <div class="login-card">
+      <div class="login-icon">🔒</div>
+      <h2>بوابة الإدارة المركزية</h2>
+      <p>منظومة TRABUILD Cloud محمية بالكامل. يرجى إدخال كلمة المرور للمتابعة.</p>
+      
+      <form onsubmit="handleAdminLogin(event)" style="margin-top:20px;">
+        <div class="form-group" style="text-align:right;">
+          <label style="font-size:13px; font-weight:bold; color:#475569;">كلمة المرور الرئيسية:</label>
+          <input type="password" id="adminPasswordInput" class="form-control" placeholder="••••••••••••••••" autofocus required style="font-size:16px; letter-spacing:1px; text-align:center;">
+        </div>
+        <div id="loginErrorMsg" class="login-error hidden"></div>
+        <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width:100%; margin-top:14px; padding:12px; font-size:15px; font-weight:bold;">
+          🔓 تسجيل الدخول إلى لوحة التحكم
+        </button>
+      </form>
     </div>
   </div>
 
