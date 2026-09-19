@@ -94,8 +94,10 @@ DEFAULT_DB = {
 }
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+LAST_DB_ERROR = ""
 
 def get_pg_conn():
+    global LAST_DB_ERROR
     if not DATABASE_URL:
         return None
     try:
@@ -105,10 +107,13 @@ def get_pg_conn():
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
         if "@dpg-" in url and ".render.com" not in url:
-            url = re.sub(r"@(dpg-[a-z0-9]+-[a-z0-9]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
+            url = re.sub(r"@(dpg-[^:/]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
+            if "sslmode=" not in url:
+                url += ("&" if "?" in url else "?") + "sslmode=require"
         conn = psycopg2.connect(url)
         return conn
     except Exception as e:
+        LAST_DB_ERROR = str(e)
         print(f"[DB] PostgreSQL connection warning: {e}")
         return None
 
@@ -229,7 +234,8 @@ def health_check():
     return jsonify({
         "status": "ok",
         "service": "trabuild",
-        "db": db_status
+        "db": db_status,
+        "error": LAST_DB_ERROR
     }), 200
 @app.route("/")
 @app.route("/admin")
