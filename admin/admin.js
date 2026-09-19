@@ -322,7 +322,7 @@ async function loadCourses() {
   container.innerHTML = '<p>جاري تحميل الكورسات...</p>';
 
   try {
-    const res = await fetch(`${API_BASE}/api/courses`);
+    const res = await adminFetch(`${API_BASE}/api/courses`);
     const data = await res.json();
     if (!data.success || !data.courses.length) {
       container.innerHTML = '<p>لا توجد كورسات مضافة بعد.</p>';

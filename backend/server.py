@@ -829,7 +829,35 @@ def check_heartbeat():
 
 @app.route("/api/courses", methods=["GET"])
 def get_courses():
+    # Require either admin token or active student license
+    auth_header = request.headers.get("Authorization", "")
+    admin_token = ""
+    if auth_header.startswith("Bearer "):
+        admin_token = auth_header.split(" ", 1)[1].strip()
+    elif request.headers.get("X-Admin-Token"):
+        admin_token = request.headers.get("X-Admin-Token").strip()
+
+    is_admin = (admin_token and admin_token == get_admin_token())
+
+    student_key = (
+        request.headers.get("X-License-Key") or 
+        request.args.get("license_key") or 
+        request.args.get("key")
+    )
     db = load_db()
+
+    is_student_valid = False
+    if student_key:
+        lic = next((l for l in db.get("licenses", []) if l["key"].upper() == student_key.strip().upper()), None)
+        if lic and lic.get("status") == "active":
+            is_student_valid = True
+
+    if not is_admin and not is_student_valid:
+        return jsonify({
+            "success": False, 
+            "message": "غير مصرح - يتطلب ترخيص طالب نشط أو تسجيل دخول الإدارة."
+        }), 401
+
     return jsonify({"success": True, "courses": db.get("courses", [])})
 
 # ----------------------------------------------------
