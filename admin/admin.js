@@ -271,7 +271,7 @@ async function toggleBan(key) {
   if (!confirm(`هل أنت متأكد من تغيير حالة الحظر لهذا الترخيص (${key})؟`)) return;
 
   try {
-    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/toggle-ban`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${encodeURIComponent(key)}/toggle-ban`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);
@@ -287,7 +287,7 @@ async function resetHwid(key) {
   if (!confirm(`هل أنت متأكد من تصفير بصمة الجهاز للترخيص (${key})؟\nسيتمكن الطالب من تفعيله على جهاز جديد.`)) return;
 
   try {
-    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/reset-hwid`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${encodeURIComponent(key)}/reset-hwid`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);
@@ -303,7 +303,7 @@ async function deleteLicense(key, name) {
   if (!confirm(`⚠️ تحذير: هل أنت متأكد من مسح حساب الطالب (${name}) نهائياً من المنظومة؟`)) return;
 
   try {
-    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${key}/delete`, { method: 'POST' });
+    const res = await adminFetch(`${API_BASE}/api/admin/licenses/${encodeURIComponent(key)}/delete`, { method: 'POST' });
     const data = await res.json();
     if (data.success) {
       alert(data.message);

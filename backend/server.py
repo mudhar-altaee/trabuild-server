@@ -547,8 +547,6 @@ DEFAULT_DB = {
 DATABASE_URL = os.environ.get("DATABASE_URL")
 LAST_DB_ERROR = ""
 _PG_POOL = None
-_DB_CACHE = None
-_DB_CACHE_TIME = 0
 
 def get_pg_pool():
     global _PG_POOL, LAST_DB_ERROR
@@ -584,13 +582,13 @@ def get_pg_conn():
     except Exception as e:
         return None
 
-def put_pg_conn(conn):
+def put_pg_conn(conn, is_error=False):
     if not conn:
         return
     pool = get_pg_pool()
     if pool and not getattr(pool, "closed", False):
         try:
-            pool.putconn(conn)
+            pool.putconn(conn, close=is_error)
             return
         except Exception:
             pass
@@ -623,8 +621,11 @@ def init_pg_tables():
             print("[DB] PostgreSQL initialized successfully!")
     except Exception as e:
         print(f"[DB] Error initializing PostgreSQL tables: {e}")
+        put_pg_conn(conn, is_error=True)
+        conn = None
     finally:
-        put_pg_conn(conn)
+        if conn:
+            put_pg_conn(conn)
 
 if DATABASE_URL:
     try:
@@ -632,12 +633,7 @@ if DATABASE_URL:
     except Exception:
         pass
 
-def load_db(force=False):
-    global _DB_CACHE, _DB_CACHE_TIME
-    now = time.time()
-    if not force and _DB_CACHE is not None and (now - _DB_CACHE_TIME) < 5:
-        return _DB_CACHE
-
+def load_db():
     conn = get_pg_conn()
     if conn:
         try:
@@ -648,16 +644,14 @@ def load_db(force=False):
                     data = row[0]
                     if isinstance(data, str):
                         data = json.loads(data)
-                    _DB_CACHE = data
-                    _DB_CACHE_TIME = now
                     return data
         except Exception as e:
             print(f"[DB] Error loading from PostgreSQL: {e}")
+            put_pg_conn(conn, is_error=True)
+            conn = None
         finally:
-            put_pg_conn(conn)
-
-    if _DB_CACHE is not None and not force:
-        return _DB_CACHE
+            if conn:
+                put_pg_conn(conn)
 
     # Fallback to local json file
     if not os.path.exists(DB_PATH):
@@ -665,18 +659,11 @@ def load_db(force=False):
         return DEFAULT_DB
     try:
         with open(DB_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            _DB_CACHE = data
-            _DB_CACHE_TIME = now
-            return data
+            return json.load(f)
     except Exception:
         return DEFAULT_DB
 
 def save_db(data):
-    global _DB_CACHE, _DB_CACHE_TIME
-    _DB_CACHE = data
-    _DB_CACHE_TIME = time.time()
-
     conn = get_pg_conn()
     if conn:
         try:
@@ -690,14 +677,11 @@ def save_db(data):
                 conn.commit()
         except Exception as e:
             print(f"[DB] Error saving to PostgreSQL: {e}")
+            put_pg_conn(conn, is_error=True)
+            conn = None
         finally:
-            put_pg_conn(conn)
-
-    try:
-        with open(DB_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+            if conn:
+                put_pg_conn(conn)
 
     try:
         with open(DB_PATH, "w", encoding="utf-8") as f:
@@ -718,11 +702,13 @@ def health_check():
         conn = get_pg_conn()
         if conn:
             db_status = "postgres"
-            conn.close()
         elif DATABASE_URL:
             db_status = "postgres_failed"
     except Exception as e:
         err_msg = str(e)
+    finally:
+        if conn:
+            put_pg_conn(conn)
 
     db_host = ""
     if DATABASE_URL:
