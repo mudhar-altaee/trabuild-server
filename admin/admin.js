@@ -16,11 +16,14 @@ function getAuthHeaders(extraHeaders = {}) {
 }
 
 async function adminFetch(url, options = {}) {
+  const separator = url.includes('?') ? '&' : '?';
+  const noCacheUrl = `${url}${separator}_t=${Date.now()}`;
   options.headers = {
     ...getAuthHeaders(options.headers || {})
   };
+  options.cache = 'no-store';
   
-  const res = await fetch(url, options);
+  const res = await fetch(noCacheUrl, options);
   if (res.status === 401) {
     showLoginModal("انتهت جلسة الدخول أو كلمة المرور غير صحيحة. يرجى تسجيل الدخول مجدداً.");
     throw new Error("Unauthorized");
@@ -520,12 +523,29 @@ async function deleteLesson(courseId, lessonId, title) {
 async function addLesson() {
   const title = document.getElementById('lessonTitle').value.trim();
   const duration = document.getElementById('lessonDuration').value.trim();
-  const bunnyId = document.getElementById('bunnyId').value.trim();
-  const streamUrl = document.getElementById('lessonUrl').value.trim();
+  let bunnyId = document.getElementById('bunnyId').value.trim();
+  let streamUrl = document.getElementById('lessonUrl').value.trim();
   const isTop = document.getElementById('lessonPositionTop') && document.getElementById('lessonPositionTop').checked;
 
-  if (!title || !streamUrl) {
-    alert("يرجى كتابة عنوان المحاضرة ورابط الفيديو أولاً!");
+  if (!title) {
+    alert("يرجى كتابة عنوان المحاضرة أولاً!");
+    return;
+  }
+
+  // Auto-resolve stream URL or Bunny ID if only one is provided
+  if (!streamUrl && bunnyId) {
+    if (bunnyId.includes('http')) {
+      streamUrl = bunnyId;
+    } else {
+      streamUrl = `https://vz-6e61c2b5-302.b-cdn.net/${bunnyId}/playlist.m3u8`;
+    }
+  } else if (streamUrl && !streamUrl.includes('http') && streamUrl.includes('-')) {
+    bunnyId = streamUrl;
+    streamUrl = `https://vz-6e61c2b5-302.b-cdn.net/${streamUrl}/playlist.m3u8`;
+  }
+
+  if (!streamUrl) {
+    alert("يرجى إدخال رابط الفيديو أو معرّف Bunny الخاص بالمحاضرة!");
     return;
   }
 
@@ -536,7 +556,7 @@ async function addLesson() {
       body: JSON.stringify({
         course_id: 1,
         title,
-        duration: duration || "45:00 دقيقة",
+        duration: duration || "1:30:00 ساعة ونصف",
         bunny_id: bunnyId,
         stream_url: streamUrl,
         position: isTop ? 'top' : 'bottom'
@@ -552,8 +572,8 @@ async function addLesson() {
       if (document.getElementById('lessonPositionTop')) {
         document.getElementById('lessonPositionTop').checked = false;
       }
-      loadCourses();
-      loadStats();
+      await loadCourses();
+      await loadStats();
     } else {
       alert("خطأ: " + data.message);
     }

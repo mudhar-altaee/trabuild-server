@@ -703,6 +703,14 @@ def health_check():
         "db_host": db_host,
         "error": LAST_DB_ERROR
     }), 200
+
+@app.after_request
+def add_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 @app.route("/")
 @app.route("/admin")
 @app.route("/admin/")
@@ -1081,13 +1089,36 @@ def add_lesson():
     data = request.json or {}
     course_id = int(data.get("course_id", 1))
     title = data.get("title", "").strip()
-    duration = data.get("duration", "45:00 دقيقة").strip()
+    duration = data.get("duration", "1:30:00 ساعة ونصف").strip()
     stream_url = data.get("stream_url", "").strip()
     bunny_id = data.get("bunny_id", "").strip()
     position = data.get("position", "bottom").strip() # "top" or "bottom"
 
-    if not title or not stream_url:
-        return jsonify({"success": False, "message": "يرجى كتابة عنوان المحاضرة ورابط الفيديو أو معرف Bunny."}), 400
+    # Intelligent URL / Bunny ID resolution
+    import re
+    if not stream_url and bunny_id:
+        if "playlist.m3u8" in bunny_id:
+            stream_url = bunny_id
+        else:
+            stream_url = f"https://vz-6e61c2b5-302.b-cdn.net/{bunny_id}/playlist.m3u8"
+
+    if stream_url and not bunny_id:
+        m = re.search(r"([0-9a-fA-F-]{36})", stream_url)
+        if m:
+            bunny_id = m.group(1)
+        elif not stream_url.startswith("http") and len(stream_url) == 36:
+            bunny_id = stream_url
+            stream_url = f"https://vz-6e61c2b5-302.b-cdn.net/{bunny_id}/playlist.m3u8"
+
+    if stream_url and not stream_url.startswith("http") and ("-" in stream_url):
+        bunny_id = stream_url
+        stream_url = f"https://vz-6e61c2b5-302.b-cdn.net/{bunny_id}/playlist.m3u8"
+
+    if not title:
+        return jsonify({"success": False, "message": "يرجى كتابة عنوان المحاضرة."}), 400
+
+    if not stream_url:
+        return jsonify({"success": False, "message": "يرجى كتابة رابط الفيديو أو معرّف Bunny."}), 400
 
     db = load_db()
     course = next((c for c in db["courses"] if c["id"] == course_id), None)
@@ -1101,7 +1132,7 @@ def add_lesson():
     new_lesson = {
         "id": next_id,
         "title": title,
-        "duration": duration,
+        "duration": duration or "1:30:00 ساعة ونصف",
         "bunny_id": bunny_id or f"bunny_{uuid.uuid4().hex[:6]}",
         "stream_url": stream_url
     }
