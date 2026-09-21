@@ -539,22 +539,79 @@ DEFAULT_DB = {
 DATABASE_URL = os.environ.get("DATABASE_URL")
 LAST_DB_ERROR = ""
 
+def ensure_seed_consistency(data):
+    """
+    Ensure all default seed courses and student licenses exist in the data
+    without ever overwriting newly registered HWIDs, last_active dates, or new courses/lessons.
+    """
+    if not isinstance(data, dict):
+        return DEFAULT_DB, True
+    
+    # 1. Merge licenses
+    existing_lics = data.setdefault("licenses", [])
+    existing_keys = {l.get("key"): l for l in existing_lics if isinstance(l, dict) and l.get("key")}
+    
+    modified = False
+    for def_lic in DEFAULT_DB.get("licenses", []):
+        k = def_lic.get("key")
+        if not k:
+            continue
+        if k not in existing_keys:
+            existing_lics.append(def_lic)
+            existing_keys[k] = def_lic
+            modified = True
+        else:
+            cur_lic = existing_keys[k]
+            if not cur_lic.get("hwid") and def_lic.get("hwid"):
+                cur_lic["hwid"] = def_lic["hwid"]
+                cur_lic["status"] = def_lic.get("status", "active")
+                cur_lic["allowed_hwids"] = def_lic.get("allowed_hwids", [def_lic["hwid"]])
+                modified = True
+    
+    # 2. Merge courses & lessons
+    existing_courses = data.setdefault("courses", [])
+    existing_course_map = {c.get("id"): c for c in existing_courses if isinstance(c, dict) and c.get("id")}
+    
+    for def_c in DEFAULT_DB.get("courses", []):
+        cid = def_c.get("id")
+        if cid not in existing_course_map:
+            existing_courses.append(def_c)
+            existing_course_map[cid] = def_c
+            modified = True
+        else:
+            cur_c = existing_course_map[cid]
+            cur_lessons = cur_c.setdefault("lessons", [])
+            cur_lesson_ids = {l.get("id") for l in cur_lessons if isinstance(l, dict)}
+            for def_l in def_c.get("lessons", []):
+                if def_l.get("id") not in cur_lesson_ids:
+                    cur_lessons.append(def_l)
+                    cur_lesson_ids.add(def_l.get("id"))
+                    modified = True
+                    
+    return data, modified
+
 def get_pg_conn():
     global LAST_DB_ERROR
     if not DATABASE_URL:
         return None
     try:
         import psycopg2
-        import re
-        url = DATABASE_URL
+        url = DATABASE_URL.strip()
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
-        if "@dpg-" in url and ".render.com" not in url:
-            url = re.sub(r"@(dpg-[^:/]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
-            if "sslmode=" not in url:
-                url += ("&" if "?" in url else "?") + "sslmode=require"
-        conn = psycopg2.connect(url)
-        return conn
+        
+        # Try direct connection first (works for Neon, Supabase, Render internal URLs, standard Postgres)
+        try:
+            return psycopg2.connect(url, connect_timeout=5)
+        except Exception as err_direct:
+            # If it's an unexpanded Render hostname connecting from an external network
+            if "@dpg-" in url and ".render.com" not in url:
+                import re
+                url_ext = re.sub(r"@(dpg-[^:/]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
+                if "sslmode=" not in url_ext:
+                    url_ext += ("&" if "?" in url_ext else "?") + "sslmode=require"
+                return psycopg2.connect(url_ext, connect_timeout=5)
+            raise err_direct
     except Exception as e:
         LAST_DB_ERROR = str(e)
         print(f"[DB] PostgreSQL connection warning: {e}")
@@ -584,10 +641,11 @@ def init_pg_tables():
                 existing = row[0]
                 if isinstance(existing, str):
                     existing = json.loads(existing)
-                if len(existing.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
+                merged, modified = ensure_seed_consistency(existing)
+                if modified:
                     cur.execute(
                         "UPDATE trabuild_store SET data = %s, updated_at = CURRENT_TIMESTAMP WHERE id = 'main';",
-                        [json.dumps(DEFAULT_DB)]
+                        [json.dumps(merged)]
                     )
             conn.commit()
             print("[DB] PostgreSQL initialized successfully!")
@@ -617,9 +675,9 @@ def load_db():
                     data = row[0]
                     if isinstance(data, str):
                         data = json.loads(data)
-                    if len(data.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
-                        save_db(DEFAULT_DB)
-                        return DEFAULT_DB
+                    data, modified = ensure_seed_consistency(data)
+                    if modified:
+                        save_db(data)
                     return data
         except Exception as e:
             print(f"[DB] Error loading from PostgreSQL: {e}")
@@ -637,9 +695,9 @@ def load_db():
     try:
         with open(DB_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-            if len(data.get("licenses", [])) < len(DEFAULT_DB.get("licenses", [])):
-                save_db(DEFAULT_DB)
-                return DEFAULT_DB
+            data, modified = ensure_seed_consistency(data)
+            if modified:
+                save_db(data)
             return data
     except Exception:
         return DEFAULT_DB
