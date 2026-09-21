@@ -545,33 +545,58 @@ DEFAULT_DB = {
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 LAST_DB_ERROR = ""
+_PG_POOL = None
+_DB_CACHE = None
+_DB_CACHE_TIME = 0
 
-def get_pg_conn():
-    global LAST_DB_ERROR
+def get_pg_pool():
+    global _PG_POOL, LAST_DB_ERROR
     if not DATABASE_URL:
         return None
+    if _PG_POOL is not None and not getattr(_PG_POOL, "closed", False):
+        return _PG_POOL
+    try:
+        from psycopg2.pool import ThreadedConnectionPool
+        url = DATABASE_URL.strip()
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        _PG_POOL = ThreadedConnectionPool(minconn=1, maxconn=10, dsn=url, connect_timeout=5)
+        return _PG_POOL
+    except Exception as e:
+        LAST_DB_ERROR = str(e)
+        return None
+
+def get_pg_conn():
+    pool = get_pg_pool()
+    if pool:
+        try:
+            return pool.getconn()
+        except Exception:
+            pass
+    # Fallback to direct connection
     try:
         import psycopg2
         url = DATABASE_URL.strip()
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
-        
-        # Try direct connection first (works for Neon, Supabase, Render internal URLs, standard Postgres)
-        try:
-            return psycopg2.connect(url, connect_timeout=5)
-        except Exception as err_direct:
-            # If it's an unexpanded Render hostname connecting from an external network
-            if "@dpg-" in url and ".render.com" not in url:
-                import re
-                url_ext = re.sub(r"@(dpg-[^:/]+)([:/])", r"@\1.frankfurt-postgres.render.com\2", url)
-                if "sslmode=" not in url_ext:
-                    url_ext += ("&" if "?" in url_ext else "?") + "sslmode=require"
-                return psycopg2.connect(url_ext, connect_timeout=5)
-            raise err_direct
+        return psycopg2.connect(url, connect_timeout=5)
     except Exception as e:
-        LAST_DB_ERROR = str(e)
-        print(f"[DB] PostgreSQL connection warning: {e}")
         return None
+
+def put_pg_conn(conn):
+    if not conn:
+        return
+    pool = get_pg_pool()
+    if pool and not getattr(pool, "closed", False):
+        try:
+            pool.putconn(conn)
+            return
+        except Exception:
+            pass
+    try:
+        conn.close()
+    except Exception:
+        pass
 
 def init_pg_tables():
     conn = get_pg_conn()
@@ -598,11 +623,7 @@ def init_pg_tables():
     except Exception as e:
         print(f"[DB] Error initializing PostgreSQL tables: {e}")
     finally:
-        if conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+        put_pg_conn(conn)
 
 if DATABASE_URL:
     try:
@@ -610,7 +631,12 @@ if DATABASE_URL:
     except Exception:
         pass
 
-def load_db():
+def load_db(force=False):
+    global _DB_CACHE, _DB_CACHE_TIME
+    now = time.time()
+    if not force and _DB_CACHE is not None and (now - _DB_CACHE_TIME) < 5:
+        return _DB_CACHE
+
     conn = get_pg_conn()
     if conn:
         try:
@@ -621,15 +647,16 @@ def load_db():
                     data = row[0]
                     if isinstance(data, str):
                         data = json.loads(data)
+                    _DB_CACHE = data
+                    _DB_CACHE_TIME = now
                     return data
         except Exception as e:
             print(f"[DB] Error loading from PostgreSQL: {e}")
         finally:
-            if conn:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
+            put_pg_conn(conn)
+
+    if _DB_CACHE is not None and not force:
+        return _DB_CACHE
 
     # Fallback to local json file
     if not os.path.exists(DB_PATH):
@@ -638,11 +665,17 @@ def load_db():
     try:
         with open(DB_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
+            _DB_CACHE = data
+            _DB_CACHE_TIME = now
             return data
     except Exception:
         return DEFAULT_DB
 
 def save_db(data):
+    global _DB_CACHE, _DB_CACHE_TIME
+    _DB_CACHE = data
+    _DB_CACHE_TIME = time.time()
+
     conn = get_pg_conn()
     if conn:
         try:
@@ -657,11 +690,13 @@ def save_db(data):
         except Exception as e:
             print(f"[DB] Error saving to PostgreSQL: {e}")
         finally:
-            if conn:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
+            put_pg_conn(conn)
+
+    try:
+        with open(DB_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
     try:
         with open(DB_PATH, "w", encoding="utf-8") as f:
@@ -836,9 +871,15 @@ def check_heartbeat():
     if bound_hwid and (client_hwid != bound_hwid and client_hwid not in allowed_hwids):
         return jsonify({"valid": False, "reason": "hwid_mismatch", "message": "عدم تطابق في بصمة الجهاز المصرح به."}), 403
 
-    # Update last active timestamp
-    license_item["last_active"] = get_baghdad_time()
-    save_db(db)
+    # Update last active timestamp (throttle DB writes to once every 3 minutes per student)
+    now_str = get_baghdad_time()
+    license_item["last_active"] = now_str
+    
+    last_saved_ts = license_item.get("_last_saved_ts", 0)
+    current_ts = time.time()
+    if current_ts - last_saved_ts > 180: # 3 minutes
+        license_item["_last_saved_ts"] = current_ts
+        save_db(db)
 
     # Return allowed courses so student players receive live lecture updates seamlessly
     allowed_course_ids = license_item.get("course_ids", [1])
