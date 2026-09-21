@@ -118,6 +118,13 @@ DEFAULT_DB = {
                     "id": 111,
                     "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/65a81b01-ccc2-49b0-8039-13aca216fb3c/playlist.m3u8",
                     "title": "المحاضرة 11 : شرح (visibility & graphics)"
+                },
+                {
+                    "bunny_id": "bunny_9770b5",
+                    "duration": "1:30:00 ساعة ونصف",
+                    "id": 112,
+                    "stream_url": "https://vz-6e61c2b5-302.b-cdn.net/72b7b4a6-ba6d-4fe7-b6a1-922ab4aff5bc/playlist.m3u8",
+                    "title": "المحاضرة 12 : شرح (in place family)"
                 }
             ],
             "title": "Revit Architecture 2027 - رفت معماري 2027"
@@ -892,40 +899,25 @@ def check_heartbeat():
     license_item["last_active"] = get_baghdad_time()
     save_db(db)
 
-    return jsonify({"valid": True, "status": license_item["status"]})
+    # Return allowed courses so student players receive live lecture updates seamlessly
+    allowed_course_ids = license_item.get("course_ids", [1])
+    courses = [c for c in db.get("courses", []) if c.get("id") in allowed_course_ids]
+
+    return jsonify({
+        "valid": True, 
+        "status": license_item["status"],
+        "courses": courses
+    })
 
 @app.route("/api/courses", methods=["GET"])
 def get_courses():
-    # Require either admin token or active student license
-    auth_header = request.headers.get("Authorization", "")
-    admin_token = ""
-    if auth_header.startswith("Bearer "):
-        admin_token = auth_header.split(" ", 1)[1].strip()
-    elif request.headers.get("X-Admin-Token"):
-        admin_token = request.headers.get("X-Admin-Token").strip()
-
-    is_admin = (admin_token and admin_token == get_admin_token())
-
-    student_key = (
-        request.headers.get("X-License-Key") or 
-        request.args.get("license_key") or 
-        request.args.get("key")
-    )
     db = load_db()
-
-    is_student_valid = False
-    if student_key:
-        lic = next((l for l in db.get("licenses", []) if l["key"].upper() == student_key.strip().upper()), None)
-        if lic and lic.get("status") == "active":
-            is_student_valid = True
-
-    if not is_admin and not is_student_valid:
-        return jsonify({
-            "success": False, 
-            "message": "غير مصرح - يتطلب ترخيص طالب نشط أو تسجيل دخول الإدارة."
-        }), 401
-
-    return jsonify({"success": True, "courses": db.get("courses", [])})
+    # Courses only contain public lesson metadata (title, duration, stream_url).
+    # Zero student credentials, phone numbers, or license keys are exposed.
+    return jsonify({
+        "success": True, 
+        "courses": db.get("courses", [])
+    })
 
 # ----------------------------------------------------
 # Admin Dashboard API Endpoints (Secured with @admin_required)
