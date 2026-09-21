@@ -748,10 +748,19 @@ def health_check():
     except Exception as e:
         err_msg = str(e)
 
+    db_host = ""
+    if DATABASE_URL:
+        try:
+            import urllib.parse
+            db_host = urllib.parse.urlparse(DATABASE_URL).hostname or ""
+        except Exception:
+            pass
+
     return jsonify({
         "status": "ok",
         "service": "trabuild",
         "db": db_status,
+        "db_host": db_host,
         "error": LAST_DB_ERROR
     }), 200
 @app.route("/")
